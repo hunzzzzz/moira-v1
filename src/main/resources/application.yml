@@ -21,3 +21,12 @@ spring:
 encrypt:
   password:
     salt: ${ENCRYPTION_SALT}
+
+# jwt
+jwt:
+  issuer: ${JWT_ISSUER}
+  secret:
+    key: ${JWT_SECRET_KEY}
+  expiration-time:
+    atk: ${JWT_EXPIRATION_TIME_ATK}
+    rtk: ${JWT_EXPIRATION_TIME_RTK}

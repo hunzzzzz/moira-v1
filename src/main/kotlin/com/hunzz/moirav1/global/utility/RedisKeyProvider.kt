@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component
 class RedisKeyProvider {
     // auth
     fun userAuth(email: String) = "auth::$email"
+    fun rtk(email: String) = "rtk::$email"
 
     // admin
     fun adminCode() = "admin_signup_code"
+    fun bannedUsers() = "banned_users"
 }

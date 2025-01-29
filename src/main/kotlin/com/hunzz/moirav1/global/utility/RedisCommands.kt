@@ -20,4 +20,14 @@ class RedisCommands(
 
     fun get(key: String): String? =
         redisTemplate.opsForValue().get(key)
+
+    // z-set
+    fun zRange(key: String, start: Long, end: Long): MutableSet<String> =
+        redisTemplate.opsForZSet().range(key, start, end)!!
+
+    fun zAdd(key: String, value: String, score: Double): Boolean =
+        redisTemplate.opsForZSet().add(key, value, score)!!
+
+    fun zScore(key: String, value: String): Double? =
+        redisTemplate.opsForZSet().score(key, value)
 }
