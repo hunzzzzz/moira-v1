@@ -6,11 +6,18 @@ import com.hunzz.moirav1.global.exception.ErrorMessages.BANNED_USER_CANNOT_LOGIN
 import com.hunzz.moirav1.global.exception.ErrorMessages.INVALID_LOGIN_INFO
 import com.hunzz.moirav1.global.exception.custom.InvalidUserInfoException
 import com.hunzz.moirav1.global.utility.*
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.stereotype.Component
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Component
 class AuthHandler(
+    @Value("\${jwt.expiration-time.atk}")
+    private val expirationTimeOfAtk: Long,
+
     private val jwtProvider: JwtProvider,
     private val passwordEncoder: PasswordEncoder,
     private val redisCommands: RedisCommands,
@@ -58,5 +65,25 @@ class AuthHandler(
         redisCommands.set(key = rtkKey, value = rtk)
 
         return TokenResponse(atk = atk, rtk = rtk)
+    }
+
+    fun logout(email: String, httpServletRequest: HttpServletRequest) {
+        // get atk
+        val atk = httpServletRequest.getHeader(AUTHORIZATION)
+
+        // setting
+        val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
+        val rtkKey = redisKeyProvider.rtk(email = email)
+
+        // add atk to blacklist
+        redisCommands.set(
+            key = blockedAtkKey,
+            value = atk,
+            expirationTime = expirationTimeOfAtk,
+            timeUnit = TimeUnit.MILLISECONDS
+        )
+
+        // delete rtk from redis
+        redisCommands.delete(key = rtkKey)
     }
 }
