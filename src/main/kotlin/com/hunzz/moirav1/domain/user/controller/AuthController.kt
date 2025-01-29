@@ -30,4 +30,11 @@ class AuthController(
 
         return ResponseEntity.ok(body)
     }
+
+    @GetMapping("/refresh")
+    fun refresh(httpServletRequest: HttpServletRequest): ResponseEntity<TokenResponse> {
+        val body = authHandler.refresh(httpServletRequest = httpServletRequest)
+
+        return ResponseEntity.ok(body)
+    }
 }
