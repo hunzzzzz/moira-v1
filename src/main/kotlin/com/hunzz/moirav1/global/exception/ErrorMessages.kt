@@ -17,6 +17,11 @@ object ErrorMessages {
     const val INVALID_LOGIN_INFO = "이메일 혹은 비밀번호가 잘못되었습니다. 다시 확인해주세요."
     const val BANNED_USER_CANNOT_LOGIN = "계정이 정지되어 로그인이 불가능합니다."
 
+    // auth
+    const val INVALID_TOKEN = "유효하지 않은 JWT 토큰입니다."
+    const val UNPACKED_ATK = "요청에 Authorization 헤더가 포함되지 않았습니다."
+    const val EXPIRED_ATK = "Access Token이 만료되었습니다."
+
     // admin
     const val INVALID_ADMIN_CODE = "잘못된 어드민 가입 코드입니다."
 
