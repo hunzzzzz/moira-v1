@@ -16,7 +16,7 @@ import java.util.*
 class SignupController(
     private val userHandler: UserHandler
 ) {
-    @PostMapping("/signup")
+    @PostMapping
     fun signup(@Valid @RequestBody request: SignUpRequest): ResponseEntity<UUID> {
         val body = userHandler.save(request = request)
 

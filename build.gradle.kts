@@ -20,6 +20,8 @@ repositories {
 }
 
 extra["jwtVersion"] = "0.12.6"
+extra["testContainersVersion"] = "1.20.4"
+extra["redisTestContainersVersion"] = "2.2.2"
 
 dependencies {
     // database
@@ -41,6 +43,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.testcontainers:testcontainers:${property("testContainersVersion")}")
+    testImplementation("com.redis:testcontainers-redis:${property("redisTestContainersVersion")}")
 }
 
 kotlin {
