@@ -5,6 +5,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 
@@ -26,6 +27,13 @@ abstract class MockMvcRequestSender {
             post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(data)
+        ).andDo(print()).andReturn()
+    }
+
+    fun logout(atk: String): MvcResult {
+        return mockMvc.perform(
+            get("/logout")
+                .header("Authorization", atk)
         ).andDo(print()).andReturn()
     }
 }
