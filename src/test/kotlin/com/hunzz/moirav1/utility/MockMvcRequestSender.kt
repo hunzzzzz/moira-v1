@@ -38,6 +38,13 @@ abstract class MockMvcRequestSender {
         ).andDo(print()).andReturn()
     }
 
+    fun refresh(rtk: String): MvcResult {
+        return mockMvc.perform(
+            get("/refresh")
+                .header("Authorization", rtk)
+        ).andDo(print()).andReturn()
+    }
+
     fun getUser(targetId: UUID, atk: String): MvcResult {
         return mockMvc.perform(
             get("/users/${targetId}")
