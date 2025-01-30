@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.moirav1.domain.user.dto.request.LoginRequest
 import com.hunzz.moirav1.domain.user.dto.request.SignUpRequest
 import com.hunzz.moirav1.domain.user.dto.response.TokenResponse
-import com.hunzz.moirav1.global.exception.ErrorMessages.EXPIRED_AUTH
-import com.hunzz.moirav1.global.exception.ErrorResponse
-import com.hunzz.moirav1.global.utility.RedisCommands
-import com.hunzz.moirav1.global.utility.RedisKeyProvider
+import com.hunzz.moirav1.domain.user.dto.response.UserResponse
 import com.hunzz.moirav1.utility.TestTemplate
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,19 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
-class LogoutIntegrationTest : TestTemplate() {
+class UserIntegrationTest : TestTemplate() {
     private lateinit var myId: UUID
 
     private lateinit var myTokens: TokenResponse
 
     private lateinit var myLoginRequest: LoginRequest
-
-    @Autowired
-    private lateinit var redisCommands: RedisCommands
-
-    @Autowired
-    private lateinit var redisKeyProvider: RedisKeyProvider
 
     private lateinit var mySignupRequest: SignUpRequest
 
@@ -62,38 +54,19 @@ class LogoutIntegrationTest : TestTemplate() {
     }
 
     @Test
-    fun 로그아웃() {
+    fun 내_프로필_조회() {
         // given
-        val myAtk = myTokens.atk
+        val atk = myTokens.atk
 
         // when
-        val result = logout(atk = myAtk)
+        val myProfile = getUser(targetId = myId, atk = atk).response.contentAsString
+            .let { objectMapper.readValue(it, UserResponse::class.java) }
 
         // then
-        val blockedAtkKey = redisKeyProvider.blockedAtk(atk = myAtk)
-        val rtkKey = redisKeyProvider.rtk(email = myLoginRequest.email!!)
-
-        assertEquals(200, result.response.status)
-        assertEquals(myAtk, redisCommands.get(key = blockedAtkKey))
-        assertNull(redisCommands.get(key = rtkKey))
-    }
-
-    @Test
-    fun 로그아웃_후_인증이_필요한_API에_접근하는_경우() {
-        // given
-        val data = objectMapper.writeValueAsString(myLoginRequest)
-        val myAtk = login(data = data).response.contentAsString
-            .let { objectMapper.readValue(it, TokenResponse::class.java) }.atk
-
-        // when
-        logout(atk = myAtk)
-
-        val result = getUser(targetId = myId, atk = myAtk)
-        val error = result.response.contentAsString
-            .let { objectMapper.readValue(it, ErrorResponse::class.java) }
-
-        // then
-        assertEquals(401, result.response.status)
-        assertEquals(EXPIRED_AUTH, error.message)
+        assertEquals(myId, myProfile.id)
+        assertEquals(mySignupRequest.name, myProfile.name)
+        assertEquals(mySignupRequest.email, myProfile.email)
+        assertNull(myProfile.imageUrl)
+        assertTrue(myProfile.isMyProfile)
     }
 }

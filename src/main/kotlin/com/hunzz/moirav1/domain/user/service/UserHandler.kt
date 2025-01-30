@@ -1,18 +1,21 @@
 package com.hunzz.moirav1.domain.user.service
 
 import com.hunzz.moirav1.domain.user.dto.request.SignUpRequest
+import com.hunzz.moirav1.domain.user.dto.response.UserResponse
 import com.hunzz.moirav1.domain.user.model.User
 import com.hunzz.moirav1.domain.user.model.UserRole
 import com.hunzz.moirav1.domain.user.repository.UserRepository
 import com.hunzz.moirav1.global.exception.ErrorMessages.DIFFERENT_TWO_PASSWORDS
 import com.hunzz.moirav1.global.exception.ErrorMessages.DUPLICATED_EMAIL
 import com.hunzz.moirav1.global.exception.ErrorMessages.INVALID_ADMIN_CODE
+import com.hunzz.moirav1.global.exception.ErrorMessages.USER_NOT_FOUND
 import com.hunzz.moirav1.global.exception.custom.InvalidAdminRequestException
 import com.hunzz.moirav1.global.exception.custom.InvalidUserInfoException
 import com.hunzz.moirav1.global.utility.PasswordEncoder
 import com.hunzz.moirav1.global.utility.RedisCommands
 import com.hunzz.moirav1.global.utility.RedisKeyProvider
 import com.hunzz.moirav1.global.utility.UserAuthProvider
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -43,6 +46,16 @@ class UserHandler(
         val condition = adminCode == inputAdminCode
 
         require(condition) { throw InvalidAdminRequestException(INVALID_ADMIN_CODE) }
+    }
+
+    private fun get(userId: UUID): User {
+        return userRepository.findByIdOrNull(id = userId) ?: throw InvalidUserInfoException(USER_NOT_FOUND)
+    }
+
+    fun get(userId: UUID, targetId: UUID): UserResponse {
+        val user = get(userId = targetId)
+
+        return UserResponse.from(user = user, isMyProfile = userId == targetId)
     }
 
     fun save(request: SignUpRequest): UUID {

@@ -8,6 +8,7 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
+import java.util.*
 
 @AutoConfigureMockMvc
 abstract class MockMvcRequestSender {
@@ -33,6 +34,13 @@ abstract class MockMvcRequestSender {
     fun logout(atk: String): MvcResult {
         return mockMvc.perform(
             get("/logout")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
+    fun getUser(targetId: UUID, atk: String): MvcResult {
+        return mockMvc.perform(
+            get("/users/${targetId}")
                 .header("Authorization", atk)
         ).andDo(print()).andReturn()
     }
