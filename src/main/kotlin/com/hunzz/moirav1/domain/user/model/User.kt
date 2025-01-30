@@ -32,4 +32,8 @@ class User(
 
     @Column(name = "image_url", nullable = true)
     var imageUrl: String?
-) : BaseTime()
+) : BaseTime() {
+    fun updateStatus(status: UserStatus) {
+        this.status = status
+    }
+}

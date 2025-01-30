@@ -3,8 +3,9 @@ package com.hunzz.moirav1.utility
 import com.redis.testcontainers.RedisContainer
 import org.junit.Ignore
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -14,11 +15,16 @@ import org.testcontainers.containers.wait.strategy.Wait
 import java.io.File
 import java.time.Duration
 
-@AutoConfigureMockMvc
 @Ignore
 @SpringBootTest
 @Transactional
-class TestTemplate {
+class TestTemplate : MockMvcRequestSender() {
+    @Autowired
+    private lateinit var dataCleaner: DataCleaner
+
+    @Autowired
+    private lateinit var dataSetter: DataSetter
+
     companion object {
         private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -61,5 +67,11 @@ class TestTemplate {
             registry.add("spring.data.redis.host") { redisHost }
             registry.add("spring.data.redis.port") { redisPort }
         }
+    }
+
+    @BeforeEach
+    fun init() {
+        dataCleaner.execute()
+        dataSetter.set()
     }
 }

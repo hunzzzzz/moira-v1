@@ -13,28 +13,17 @@ import com.hunzz.moirav1.global.exception.ErrorMessages.UNWRITTEN_NAME
 import com.hunzz.moirav1.global.exception.ErrorResponse
 import com.hunzz.moirav1.global.utility.RedisCommands
 import com.hunzz.moirav1.global.utility.RedisKeyProvider
-import com.hunzz.moirav1.utility.DataCleaner
+import com.hunzz.moirav1.utility.DataSetter.Companion.TEST_ADMIN_SIGNUP_CODE
 import com.hunzz.moirav1.utility.TestTemplate
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.MvcResult
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class SignUpIntegrationTest : TestTemplate() {
-    @Autowired
-    lateinit var dataCleaner: DataCleaner
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
@@ -49,18 +38,8 @@ class SignUpIntegrationTest : TestTemplate() {
     @Autowired
     private lateinit var userRepository: UserRepository
 
-    private fun signup(data: String): MvcResult {
-        return mockMvc.perform(
-            post("/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(data)
-        ).andDo(print()).andReturn()
-    }
-
     @BeforeEach
     fun before() {
-        dataCleaner.execute()
-
         mySignupRequest = SignUpRequest(
             email = "me@example.com",
             password = "Mypassword1234!",
@@ -95,13 +74,8 @@ class SignUpIntegrationTest : TestTemplate() {
 
     @Test
     fun 어드민_회원가입() {
-        // given (어드민 가입 코드 추가)
-        val adminCode = "TEST_ADMIN_CODE"
-        val adminCodeKey = redisKeyProvider.adminCode()
-        redisCommands.set(key = adminCodeKey, value = adminCode)
-
         // given
-        mySignupRequest.adminCode = adminCode
+        mySignupRequest.adminCode = TEST_ADMIN_SIGNUP_CODE
         val data = objectMapper.writeValueAsString(mySignupRequest)
 
         // when
@@ -199,13 +173,8 @@ class SignUpIntegrationTest : TestTemplate() {
 
     @Test
     fun 어드민_회원가입시_잘못된_어드민_코드를_입력한_경우() {
-        // given (어드민 가입 코드 추가)
-        val adminCode = "TEST_ADMIN_CODE"
-        val adminCodeKey = redisKeyProvider.adminCode()
-        redisCommands.set(key = adminCodeKey, value = adminCode)
-
         // given
-        mySignupRequest.adminCode = adminCode + "_wrong"
+        mySignupRequest.adminCode = TEST_ADMIN_SIGNUP_CODE + "_WRONG"
         val data = objectMapper.writeValueAsString(mySignupRequest)
 
         // when
