@@ -3,6 +3,7 @@ package com.hunzz.moirav1.domain.relation.service
 import com.hunzz.moirav1.domain.relation.model.Relation
 import com.hunzz.moirav1.domain.relation.model.RelationId
 import com.hunzz.moirav1.domain.relation.repository.RelationRepository
+import com.hunzz.moirav1.domain.user.service.UserHandler
 import com.hunzz.moirav1.global.exception.ErrorMessages.ALREADY_FOLLOWED
 import com.hunzz.moirav1.global.exception.ErrorMessages.ALREADY_UNFOLLOWED
 import com.hunzz.moirav1.global.exception.ErrorMessages.CANNOT_FOLLOW_ITSELF
@@ -19,10 +20,13 @@ import java.util.*
 class RelationHandler(
     private val redisCommands: RedisCommands,
     private val redisKeyProvider: RedisKeyProvider,
-    private val relationRepository: RelationRepository
+    private val relationRepository: RelationRepository,
+    private val userHandler: UserHandler
 ) {
     private fun isExistingUser(userId: UUID) {
-        // TODO
+        val condition = userHandler.isUser(userId = userId)
+
+        require(condition) { throw InvalidUserInfoException(USER_NOT_FOUND) }
     }
 
     private fun isNotFollowingItself(userId: UUID, targetId: UUID, isUnfollow: Boolean) {
@@ -54,6 +58,7 @@ class RelationHandler(
         val now = System.currentTimeMillis().toDouble()
 
         // validate
+        isExistingUser(userId = targetId)
         isNotFollowingItself(userId = userId, targetId = targetId, isUnfollow = isUnfollow)
         isNotAlreadyFollowed(followingKey = followingKey, targetId = targetId, isUnfollow = isUnfollow)
 

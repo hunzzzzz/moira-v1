@@ -34,8 +34,7 @@ class UserHandler(
     }
 
     private fun isUniqueEmail(email: String) {
-        val userAuthKey = redisKeyProvider.userAuth(email = email)
-        val condition = redisCommands.get(key = userAuthKey) == null
+        val condition = !isUser(email = email)
 
         require(condition) { throw InvalidUserInfoException(DUPLICATED_EMAIL) }
     }
@@ -50,6 +49,18 @@ class UserHandler(
 
     private fun get(userId: UUID): User {
         return userRepository.findByIdOrNull(id = userId) ?: throw InvalidUserInfoException(USER_NOT_FOUND)
+    }
+
+    fun isUser(email: String): Boolean {
+        val emailsKey = redisKeyProvider.emails()
+
+        return redisCommands.sIsMember(key = emailsKey, value = email)
+    }
+
+    fun isUser(userId: UUID): Boolean {
+        val idsKey = redisKeyProvider.ids()
+
+        return redisCommands.sIsMember(key = idsKey, value = userId.toString())
     }
 
     fun get(userId: UUID, targetId: UUID): UserResponse {
@@ -67,7 +78,7 @@ class UserHandler(
         // create
         val encodedPassword = passwordEncoder.encodePassword(rawPassword = request.password!!)
 
-        // save
+        // save (db)
         val user = userRepository.save(
             User(
                 role = if (request.adminCode != null) UserRole.ADMIN else UserRole.USER,
@@ -77,7 +88,15 @@ class UserHandler(
                 imageUrl = null
             )
         )
+
+        // save (redis)
         val userAuth = userAuthProvider.saveUserAuthInRedis(user = user)
+
+        val emailsKey = redisKeyProvider.emails()
+        val idsKey = redisKeyProvider.ids()
+
+        redisCommands.sAdd(key = emailsKey, value = userAuth.email)
+        redisCommands.sAdd(key = idsKey, value = userAuth.userId.toString())
 
         return userAuth.userId
     }

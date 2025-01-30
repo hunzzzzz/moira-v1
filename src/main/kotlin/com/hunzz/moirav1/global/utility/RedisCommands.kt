@@ -21,6 +21,13 @@ class RedisCommands(
     fun get(key: String): String? =
         redisTemplate.opsForValue().get(key)
 
+    // set
+    fun sAdd(key: String, value: String): Long =
+        redisTemplate.opsForSet().add(key, value)!!
+
+    fun sIsMember(key: String, value: String): Boolean =
+        redisTemplate.opsForSet().isMember(key, value)!!
+
     // z-set
     fun zRange(key: String, start: Long, end: Long): MutableSet<String> =
         redisTemplate.opsForZSet().range(key, start, end)!!

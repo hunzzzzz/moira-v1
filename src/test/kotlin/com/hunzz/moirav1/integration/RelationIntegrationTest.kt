@@ -6,6 +6,7 @@ import com.hunzz.moirav1.domain.user.dto.request.SignUpRequest
 import com.hunzz.moirav1.domain.user.dto.response.TokenResponse
 import com.hunzz.moirav1.global.exception.ErrorMessages.ALREADY_FOLLOWED
 import com.hunzz.moirav1.global.exception.ErrorMessages.CANNOT_FOLLOW_ITSELF
+import com.hunzz.moirav1.global.exception.ErrorMessages.USER_NOT_FOUND
 import com.hunzz.moirav1.global.exception.ErrorResponse
 import com.hunzz.moirav1.global.utility.RedisCommands
 import com.hunzz.moirav1.global.utility.RedisKeyProvider
@@ -118,6 +119,18 @@ class RelationIntegrationTest : TestTemplate() {
 
         assertNull(redisCommands.zScore(key = followingKey, value = targetId.toString()))
         assertNull(redisCommands.zScore(key = followerKey, value = myId.toString()))
+    }
+
+    @Test
+    fun 존재하지_않는_대상을_팔로우하려는_경우() {
+        // when
+        val result = follow(targetId = UUID.randomUUID(), atk = myTokens.atk)
+        val error = result.response.contentAsString
+            .let { objectMapper.readValue(it, ErrorResponse::class.java) }
+
+        // then
+        assertEquals(400, result.response.status)
+        assertEquals(USER_NOT_FOUND, error.message)
     }
 
     @Test

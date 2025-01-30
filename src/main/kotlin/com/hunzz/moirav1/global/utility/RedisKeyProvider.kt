@@ -14,6 +14,10 @@ class RedisKeyProvider {
     fun adminCode() = "admin_signup_code"
     fun bannedUsers() = "banned_users"
 
+    // user
+    fun emails() = "emails"
+    fun ids() = "ids"
+
     // relation
     fun following(userId: UUID) = "following:$userId"
     fun follower(userId: UUID) = "follower:$userId"
