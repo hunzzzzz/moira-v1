@@ -1,0 +1,8 @@
+services:
+  test-db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: test-moira
+      MYSQL_ROOT_PASSWORD: test-password
+    ports:
+      - "3306"
