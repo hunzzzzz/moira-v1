@@ -30,4 +30,10 @@ class RedisCommands(
 
     fun zScore(key: String, value: String): Double? =
         redisTemplate.opsForZSet().score(key, value)
+
+    fun zCard(key: String): Long =
+        redisTemplate.opsForZSet().size(key)!!
+
+    fun zRem(key: String, value: String): Long =
+        redisTemplate.opsForZSet().remove(key, value)!!
 }

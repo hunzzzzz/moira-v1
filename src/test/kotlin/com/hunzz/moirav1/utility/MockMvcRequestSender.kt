@@ -51,4 +51,18 @@ abstract class MockMvcRequestSender {
                 .header("Authorization", atk)
         ).andDo(print()).andReturn()
     }
+
+    fun follow(targetId: UUID, atk: String): MvcResult {
+        return mockMvc.perform(
+            get("/users/target/${targetId}/follow")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
+    fun unfollow(targetId: UUID, atk: String): MvcResult {
+        return mockMvc.perform(
+            get("/users/target/${targetId}/unfollow")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
 }

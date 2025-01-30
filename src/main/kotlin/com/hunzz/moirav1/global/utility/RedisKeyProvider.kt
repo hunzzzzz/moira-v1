@@ -1,6 +1,7 @@
 package com.hunzz.moirav1.global.utility
 
 import org.springframework.stereotype.Component
+import java.util.*
 
 @Component
 class RedisKeyProvider {
@@ -12,4 +13,8 @@ class RedisKeyProvider {
     // admin
     fun adminCode() = "admin_signup_code"
     fun bannedUsers() = "banned_users"
+
+    // relation
+    fun following(userId: UUID) = "following:$userId"
+    fun follower(userId: UUID) = "follower:$userId"
 }
