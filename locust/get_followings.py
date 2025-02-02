@@ -8,10 +8,10 @@ class Test(FastHttpUser):
     @task
     def first_page(self):
         user_id = "5d73df04-efc2-4ddf-8366-9fe89236c59d"
-        self.client.get(url=f"/test/users/{user_id}/followings")
+        self.client.get(url=f"/users/{user_id}/followings", headers={"Authorization": "test"})
 
     @task
     def second_page(self):
         user_id = "5d73df04-efc2-4ddf-8366-9fe89236c59d"
-        cursor = "2025-02-02T15:27:31.899874"
-        self.client.get(url=f"/test/users/{user_id}/followings?cursor={cursor}")
+        cursor = "ac34fd3b-307b-469b-8b89-eee52212bfd8"
+        self.client.get(url=f"/users/{user_id}/followings?cursor={cursor}", headers={"Authorization": "test"})

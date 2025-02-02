@@ -35,6 +35,15 @@ class RedisCommands(
     fun zRange(key: String, start: Long, end: Long): MutableSet<String> =
         redisTemplate.opsForZSet().range(key, start, end)!!
 
+    fun zRevRangeByScore(
+        key: String,
+        minScore: Double,
+        maxScore: Double,
+        offset: Long,
+        count: Long
+    ): MutableSet<String> =
+        redisTemplate.opsForZSet().reverseRangeByScore(key, minScore, maxScore, offset, count)!!
+
     fun zAdd(key: String, value: String, score: Double): Boolean =
         redisTemplate.opsForZSet().add(key, value, score)!!
 

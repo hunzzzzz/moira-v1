@@ -47,10 +47,6 @@ class UserHandler(
         require(condition) { throw InvalidAdminRequestException(INVALID_ADMIN_CODE) }
     }
 
-    private fun get(userId: UUID): User {
-        return userRepository.findByIdOrNull(id = userId) ?: throw InvalidUserInfoException(USER_NOT_FOUND)
-    }
-
     fun isUser(email: String): Boolean {
         val emailsKey = redisKeyProvider.emails()
 
@@ -61,6 +57,10 @@ class UserHandler(
         val idsKey = redisKeyProvider.ids()
 
         return redisCommands.sIsMember(key = idsKey, value = userId.toString())
+    }
+
+    fun get(userId: UUID): User {
+        return userRepository.findByIdOrNull(id = userId) ?: throw InvalidUserInfoException(USER_NOT_FOUND)
     }
 
     fun get(userId: UUID, targetId: UUID): UserResponse {
