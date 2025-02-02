@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class RelationIntegrationTest : TestTemplate() {
+class RelationIntegrationTest1 : TestTemplate() {
     private lateinit var myId: UUID
 
     private lateinit var myTokens: TokenResponse

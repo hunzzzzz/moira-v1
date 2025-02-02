@@ -1,7 +1,9 @@
 package com.hunzz.moirav1.domain.relation.service
 
+import com.hunzz.moirav1.domain.relation.dto.response.FollowResponse
 import com.hunzz.moirav1.domain.relation.model.Relation
 import com.hunzz.moirav1.domain.relation.model.RelationId
+import com.hunzz.moirav1.domain.relation.model.RelationType
 import com.hunzz.moirav1.domain.relation.repository.RelationRepository
 import com.hunzz.moirav1.domain.user.service.UserHandler
 import com.hunzz.moirav1.global.exception.ErrorMessages.ALREADY_FOLLOWED
@@ -12,8 +14,11 @@ import com.hunzz.moirav1.global.exception.ErrorMessages.USER_NOT_FOUND
 import com.hunzz.moirav1.global.exception.custom.InvalidUserInfoException
 import com.hunzz.moirav1.global.utility.RedisCommands
 import com.hunzz.moirav1.global.utility.RedisKeyProvider
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 @Component
@@ -23,6 +28,10 @@ class RelationHandler(
     private val relationRepository: RelationRepository,
     private val userHandler: UserHandler
 ) {
+    companion object {
+        const val RELATION_PAGE_SIZE = 10
+    }
+
     private fun isExistingUser(userId: UUID) {
         val condition = userHandler.isUser(userId = userId)
 
@@ -80,5 +89,18 @@ class RelationHandler(
             val userRelation = Relation(userId = userId, targetId = targetId)
             relationRepository.save(userRelation)
         }
+    }
+
+    fun getRelations(userId: UUID, cursor: LocalDateTime?, type: RelationType): Slice<FollowResponse> {
+        // settings
+        val pageable = PageRequest.ofSize(RELATION_PAGE_SIZE)
+
+        // querydsl
+        return relationRepository.getRelations(
+            pageable = pageable,
+            userId = userId,
+            cursor = cursor,
+            type = type
+        )
     }
 }
