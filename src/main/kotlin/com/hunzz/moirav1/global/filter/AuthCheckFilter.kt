@@ -36,7 +36,7 @@ class AuthCheckFilter(
         request as HttpServletRequest
         response as HttpServletResponse
 
-        if (request.getHeader(HttpHeaders.AUTHORIZATION) != "test") {
+        if (request.getHeader(HttpHeaders.AUTHORIZATION) != "locust") {
             // check 'Authorization' header
             val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION) ?: run {
                 sendErrorResponse(
