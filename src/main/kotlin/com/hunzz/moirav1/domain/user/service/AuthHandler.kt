@@ -25,11 +25,11 @@ class AuthHandler(
     private val passwordEncoder: PasswordEncoder,
     private val redisCommands: RedisCommands,
     private val redisKeyProvider: RedisKeyProvider,
-    private val userAuthProvider: UserAuthProvider
+    private val userAuthProvider: UserAuthProvider,
+    private val userHandler: UserHandler
 ) {
     private fun isExistingEmail(email: String) {
-        val userAuthKey = redisKeyProvider.userAuth(email = email)
-        val condition = redisCommands.get(key = userAuthKey) != null
+        val condition = userHandler.isUser(email = email)
 
         require(condition) { throw InvalidUserInfoException(INVALID_LOGIN_INFO) }
     }

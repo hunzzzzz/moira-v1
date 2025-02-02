@@ -28,4 +28,10 @@ object ErrorMessages {
 
     // user
     const val USER_NOT_FOUND = "존재하지 않는 유저입니다."
+
+    // relation
+    const val CANNOT_FOLLOW_ITSELF = "자신을 팔로우할 수 없습니다."
+    const val CANNOT_UNFOLLOW_ITSELF = "자신을 언팔로우할 수 없습니다."
+    const val ALREADY_FOLLOWED = "이미 팔로우한 대상입니다."
+    const val ALREADY_UNFOLLOWED = "잘못된 요청입니다."
 }

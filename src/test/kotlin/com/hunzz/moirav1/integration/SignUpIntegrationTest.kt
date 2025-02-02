@@ -22,6 +22,7 @@ import org.springframework.data.repository.findByIdOrNull
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class SignUpIntegrationTest : TestTemplate() {
     @Autowired
@@ -56,7 +57,7 @@ class SignUpIntegrationTest : TestTemplate() {
         // when
         val result = signup(data = data)
 
-        // then (db)
+        // then
         val userId = result.response.contentAsString
             .let { it.substring(1, it.length - 1) }
             .let { UUID.fromString(it) }
@@ -66,9 +67,13 @@ class SignUpIntegrationTest : TestTemplate() {
         assertEquals(mySignupRequest.email, user.email)
         assertEquals(mySignupRequest.name, user.name)
 
-        // then (redis userAuth 저장 여부 확인)
+        // then (redis)
+        val emailsKey = redisKeyProvider.emails()
+        val idsKey = redisKeyProvider.ids()
         val userAuthKey = redisKeyProvider.userAuth(email = user.email)
 
+        assertTrue(redisCommands.sIsMember(key = emailsKey, value = user.email))
+        assertTrue(redisCommands.sIsMember(key = idsKey, value = user.id.toString()))
         assertNotNull(redisCommands.get(key = userAuthKey))
     }
 

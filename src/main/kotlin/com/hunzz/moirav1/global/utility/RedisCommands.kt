@@ -11,6 +11,9 @@ class RedisCommands(
     fun delete(key: String): Boolean =
         redisTemplate.delete(key)
 
+    fun deleteAll(): Unit =
+        redisTemplate.keys("*").forEach { redisTemplate.delete(it) }
+
     // string
     fun set(key: String, value: String): Unit =
         redisTemplate.opsForValue().set(key, value)
@@ -21,6 +24,13 @@ class RedisCommands(
     fun get(key: String): String? =
         redisTemplate.opsForValue().get(key)
 
+    // set
+    fun sAdd(key: String, value: String): Long =
+        redisTemplate.opsForSet().add(key, value)!!
+
+    fun sIsMember(key: String, value: String): Boolean =
+        redisTemplate.opsForSet().isMember(key, value)!!
+
     // z-set
     fun zRange(key: String, start: Long, end: Long): MutableSet<String> =
         redisTemplate.opsForZSet().range(key, start, end)!!
@@ -30,4 +40,10 @@ class RedisCommands(
 
     fun zScore(key: String, value: String): Double? =
         redisTemplate.opsForZSet().score(key, value)
+
+    fun zCard(key: String): Long =
+        redisTemplate.opsForZSet().size(key)!!
+
+    fun zRem(key: String, value: String): Long =
+        redisTemplate.opsForZSet().remove(key, value)!!
 }
