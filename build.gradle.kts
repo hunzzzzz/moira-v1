@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.spring") version "2.1.0"
     kotlin("plugin.jpa") version "2.1.0"
+    kotlin("kapt") version "2.1.0"
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -20,8 +21,9 @@ repositories {
 }
 
 extra["jwtVersion"] = "0.12.6"
-extra["testContainersVersion"] = "1.20.4"
+extra["queryDslVersion"] = "5.0.0"
 extra["redisTestContainersVersion"] = "2.2.2"
+extra["testContainersVersion"] = "1.20.4"
 
 dependencies {
     // database
@@ -33,6 +35,9 @@ dependencies {
     // kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    // queryDsl
+    implementation("com.querydsl:querydsl-jpa:${property("queryDslVersion")}:jakarta")
+    kapt("com.querydsl:querydsl-apt:${property("queryDslVersion")}:jakarta")
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     // springboot
