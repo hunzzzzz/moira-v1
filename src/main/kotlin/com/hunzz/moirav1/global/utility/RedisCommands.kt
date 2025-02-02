@@ -11,6 +11,9 @@ class RedisCommands(
     fun delete(key: String): Boolean =
         redisTemplate.delete(key)
 
+    fun deleteAll(): Unit =
+        redisTemplate.keys("*").forEach { redisTemplate.delete(it) }
+
     // string
     fun set(key: String, value: String): Unit =
         redisTemplate.opsForValue().set(key, value)
