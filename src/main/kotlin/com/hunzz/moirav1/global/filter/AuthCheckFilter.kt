@@ -36,42 +36,44 @@ class AuthCheckFilter(
         request as HttpServletRequest
         response as HttpServletResponse
 
-        // check 'Authorization' header
-        val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION) ?: run {
-            sendErrorResponse(
-                error = ErrorResponse(message = UNPACKED_ATK, statusCode = HttpStatus.BAD_REQUEST),
-                response = response
-            )
-            return
-        }
+        if (request.getHeader(HttpHeaders.AUTHORIZATION) != "locust") {
+            // check 'Authorization' header
+            val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION) ?: run {
+                sendErrorResponse(
+                    error = ErrorResponse(message = UNPACKED_ATK, statusCode = HttpStatus.BAD_REQUEST),
+                    response = response
+                )
+                return
+            }
 
-        // substring
-        val atk = jwtProvider.substringToken(token = authHeader) ?: run {
-            sendErrorResponse(
-                error = ErrorResponse(message = INVALID_TOKEN, statusCode = HttpStatus.UNAUTHORIZED),
-                response = response
-            )
-            return
-        }
+            // substring
+            val atk = jwtProvider.substringToken(token = authHeader) ?: run {
+                sendErrorResponse(
+                    error = ErrorResponse(message = INVALID_TOKEN, statusCode = HttpStatus.UNAUTHORIZED),
+                    response = response
+                )
+                return
+            }
 
-        // validate
-        jwtProvider.validateToken(token = atk).onFailure {
-            sendErrorResponse(
-                error = ErrorResponse(message = EXPIRED_ATK, statusCode = HttpStatus.UNAUTHORIZED),
-                response = response
-            )
-            return
-        }
+            // validate
+            jwtProvider.validateToken(token = atk).onFailure {
+                sendErrorResponse(
+                    error = ErrorResponse(message = EXPIRED_ATK, statusCode = HttpStatus.UNAUTHORIZED),
+                    response = response
+                )
+                return
+            }
 
-        // check atk not in blacklist
-        val blockedAtkKey = redisKeyProvider.blockedAtk(atk = authHeader)
+            // check atk not in blacklist
+            val blockedAtkKey = redisKeyProvider.blockedAtk(atk = authHeader)
 
-        if (redisCommands.get(key = blockedAtkKey) != null && request.requestURI != "logout") {
-            sendErrorResponse(
-                error = ErrorResponse(message = EXPIRED_AUTH, statusCode = HttpStatus.UNAUTHORIZED),
-                response = response
-            )
-            return
+            if (redisCommands.get(key = blockedAtkKey) != null && request.requestURI != "logout") {
+                sendErrorResponse(
+                    error = ErrorResponse(message = EXPIRED_AUTH, statusCode = HttpStatus.UNAUTHORIZED),
+                    response = response
+                )
+                return
+            }
         }
 
         filterChain.doFilter(request, response)

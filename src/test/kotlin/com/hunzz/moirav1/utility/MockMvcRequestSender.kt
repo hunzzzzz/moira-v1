@@ -8,7 +8,6 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
-import java.time.LocalDateTime
 import java.util.*
 
 @AutoConfigureMockMvc
@@ -67,14 +66,14 @@ abstract class MockMvcRequestSender {
         ).andDo(print()).andReturn()
     }
 
-    fun getFollowings(userId: UUID, atk: String, cursor: LocalDateTime? = null): MvcResult {
+    fun getFollowings(userId: UUID, atk: String, cursor: UUID? = null): MvcResult {
         return mockMvc.perform(
             get("/users/${userId}/followings${if (cursor != null) "?cursor=$cursor" else ""}")
                 .header("Authorization", atk)
         ).andDo(print()).andReturn()
     }
 
-    fun getFollowers(userId: UUID, atk: String, cursor: LocalDateTime? = null): MvcResult {
+    fun getFollowers(userId: UUID, atk: String, cursor: UUID? = null): MvcResult {
         return mockMvc.perform(
             get("/users/${userId}/followers${if (cursor != null) "?cursor=$cursor" else ""}")
                 .header("Authorization", atk)

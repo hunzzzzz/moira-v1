@@ -15,6 +15,8 @@ import com.hunzz.moirav1.global.utility.PasswordEncoder
 import com.hunzz.moirav1.global.utility.RedisCommands
 import com.hunzz.moirav1.global.utility.RedisKeyProvider
 import com.hunzz.moirav1.global.utility.UserAuthProvider
+import org.springframework.aop.framework.AopContext
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import java.util.*
@@ -27,6 +29,8 @@ class UserHandler(
     private val userAuthProvider: UserAuthProvider,
     private val userRepository: UserRepository
 ) {
+    private fun proxy() = AopContext.currentProxy() as UserHandler
+
     private fun isEqualPasswords(password1: String, password2: String) {
         val condition = password1 == password2
 
@@ -47,10 +51,6 @@ class UserHandler(
         require(condition) { throw InvalidAdminRequestException(INVALID_ADMIN_CODE) }
     }
 
-    private fun get(userId: UUID): User {
-        return userRepository.findByIdOrNull(id = userId) ?: throw InvalidUserInfoException(USER_NOT_FOUND)
-    }
-
     fun isUser(email: String): Boolean {
         val emailsKey = redisKeyProvider.emails()
 
@@ -64,9 +64,23 @@ class UserHandler(
     }
 
     fun get(userId: UUID, targetId: UUID): UserResponse {
-        val user = get(userId = targetId)
+        val user = proxy().getWithLocalCache(userId = targetId)
 
         return UserResponse.from(user = user, isMyProfile = userId == targetId)
+    }
+
+    fun get(userId: UUID): User {
+        return userRepository.findByIdOrNull(id = userId) ?: throw InvalidUserInfoException(USER_NOT_FOUND)
+    }
+
+    @Cacheable(cacheNames = ["user"], cacheManager = "redisCacheManager")
+    fun getWithRedisCache(userId: UUID): User {
+        return get(userId = userId)
+    }
+
+    @Cacheable(cacheNames = ["user"], cacheManager = "localCacheManager")
+    fun getWithLocalCache(userId: UUID): User {
+        return getWithRedisCache(userId = userId)
     }
 
     fun save(request: SignUpRequest): UUID {

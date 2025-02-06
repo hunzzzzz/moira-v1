@@ -1,7 +1,7 @@
 package com.hunzz.moirav1.integration
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.hunzz.moirav1.domain.relation.dto.response.FollowResponse
 import com.hunzz.moirav1.domain.relation.service.RelationHandler
 import com.hunzz.moirav1.domain.user.dto.request.LoginRequest
@@ -28,14 +28,9 @@ class RelationIntegrationTest2 : TestTemplate() {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-    private fun getContentsFromHttpResponse(result: MvcResult): MutableList<FollowResponse> {
-        val jsonNode = result.response.contentAsString
-            .let { objectMapper.readValue(it, JsonNode::class.java) }
-        val list = mutableListOf<FollowResponse>()
-
-        jsonNode.get("content").forEach {
-            list.add(objectMapper.treeToValue(it, FollowResponse::class.java))
-        }
+    private fun getContentsFromHttpResponse(result: MvcResult): List<FollowResponse> {
+        val list: List<FollowResponse> = result.response.contentAsString
+            .let { objectMapper.readValue(it) }
 
         return list
     }
@@ -69,8 +64,10 @@ class RelationIntegrationTest2 : TestTemplate() {
     @Test
     fun 내_팔로잉_목록을_조회() {
         // given
+        val numOfDummyUsers = 30
         val dummyPassword = "Dummy1234!"
-        repeat(30) { index ->
+
+        repeat(numOfDummyUsers) { index ->
             // dummy signup
             val dummySignupRequest = SignUpRequest(
                 email = "dummy${index + 1}@example.com",
@@ -94,14 +91,21 @@ class RelationIntegrationTest2 : TestTemplate() {
         // then
         assertEquals(200, result.response.status)
         assertEquals(RelationHandler.RELATION_PAGE_SIZE, firstPage.size)
-        assertTrue(firstPage.any { firstPage.first().createdAt >= it.createdAt })
+        assertEquals("dummy$numOfDummyUsers", firstPage.first().name)
+        assertTrue(
+            firstPage.any {
+                firstPage.first().name.substring(5).toInt() >= it.name.substring(5).toInt()
+            }
+        )
     }
 
     @Test
     fun 내_팔로잉_목록을_조회_중간_페이지() {
         // given
+        val numOfDummyUsers = 30
         val dummyPassword = "Dummy1234!"
-        repeat(30) { index ->
+
+        repeat(numOfDummyUsers) { index ->
             // dummy signup
             val dummySignupRequest = SignUpRequest(
                 email = "dummy${index + 1}@example.com",
@@ -122,23 +126,30 @@ class RelationIntegrationTest2 : TestTemplate() {
         val firstPage = getContentsFromHttpResponse(
             result = getFollowings(userId = myId, atk = myTokens.atk)
         )
-        val cursor = firstPage.random().createdAt
+        val randomDummyUser = firstPage.random()
 
         // when
-        val result = getFollowings(userId = myId, atk = myTokens.atk, cursor = cursor)
+        val result = getFollowings(userId = myId, atk = myTokens.atk, cursor = randomDummyUser.userId)
         val nextPage = getContentsFromHttpResponse(result = result)
 
         // then
         assertEquals(200, result.response.status)
         assertEquals(RelationHandler.RELATION_PAGE_SIZE, nextPage.size)
-        assertTrue(nextPage.any { cursor >= it.createdAt })
+        assertTrue(
+            nextPage.any {
+                randomDummyUser.name.substring(5).toInt() >=
+                        it.name.substring(5).toInt()
+            }
+        )
     }
 
     @Test
     fun 내_팔로워_목록_조회_첫_페이지() {
         // given
+        val numOfDummyUsers = 30
         val dummyPassword = "Dummy1234!"
-        repeat(30) { index ->
+
+        repeat(numOfDummyUsers) { index ->
             // dummy signup
             val dummySignupRequest = SignUpRequest(
                 email = "dummy${index + 1}@example.com",
@@ -169,6 +180,11 @@ class RelationIntegrationTest2 : TestTemplate() {
         // then
         assertEquals(200, result.response.status)
         assertEquals(RelationHandler.RELATION_PAGE_SIZE, firstPage.size)
-        assertTrue(firstPage.any { firstPage.first().createdAt >= it.createdAt })
+        assertEquals("dummy$numOfDummyUsers", firstPage.first().name)
+        assertTrue(
+            firstPage.any {
+                firstPage.first().name.substring(5).toInt() >= it.name.substring(5).toInt()
+            }
+        )
     }
 }

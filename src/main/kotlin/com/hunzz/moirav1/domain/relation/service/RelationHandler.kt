@@ -14,11 +14,10 @@ import com.hunzz.moirav1.global.exception.ErrorMessages.USER_NOT_FOUND
 import com.hunzz.moirav1.global.exception.custom.InvalidUserInfoException
 import com.hunzz.moirav1.global.utility.RedisCommands
 import com.hunzz.moirav1.global.utility.RedisKeyProvider
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 @Component
@@ -91,16 +90,35 @@ class RelationHandler(
         }
     }
 
-    fun getRelations(userId: UUID, cursor: LocalDateTime?, type: RelationType): Slice<FollowResponse> {
-        // settings
-        val pageable = PageRequest.ofSize(RELATION_PAGE_SIZE)
-
-        // querydsl
-        return relationRepository.getRelations(
-            pageable = pageable,
-            userId = userId,
-            cursor = cursor,
-            type = type
+    fun getRelations(userId: UUID, cursor: UUID?, type: RelationType): List<FollowResponse> {
+        // get followings/followers from redis
+        val key = when (type) {
+            RelationType.FOLLOWING -> redisKeyProvider.following(userId = userId)
+            RelationType.FOLLOWER -> redisKeyProvider.follower(userId = userId)
+        }
+        val userIds = redisCommands.zRevRangeByScore(
+            key = key,
+            minScore = Double.NEGATIVE_INFINITY,
+            maxScore =
+                if (cursor != null)
+                    redisCommands.zScore(key = key, value = cursor.toString())!!
+                else LocalDateTime.now()
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant().toEpochMilli().toDouble(),
+            offset = if (cursor != null) 1L else 0L,
+            count = RELATION_PAGE_SIZE.toLong()
         )
+
+        // return user info
+        return userIds.map {
+            val id = UUID.fromString(it)
+            val user = userHandler.getWithLocalCache(userId = id)
+
+            FollowResponse(
+                userId = id,
+                name = user.name,
+                imageUrl = user.imageUrl
+            )
+        }
     }
 }

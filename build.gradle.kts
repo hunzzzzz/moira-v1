@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.hunzz"
-version = "1.1.0"
+version = "1.1.1"
 
 java {
     toolchain {
@@ -26,6 +26,8 @@ extra["redisTestContainersVersion"] = "2.2.2"
 extra["testContainersVersion"] = "1.20.4"
 
 dependencies {
+    // cache
+    implementation("com.github.ben-manes.caffeine:caffeine")
     // database
     runtimeOnly("com.mysql:mysql-connector-j")
     // jwt
