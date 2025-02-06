@@ -1,4 +1,4 @@
-from locust import task, FastHttpUser
+from locust import task, FastHttpUser, between
 import random
 
 class Test(FastHttpUser):

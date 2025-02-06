@@ -112,7 +112,7 @@ class RelationHandler(
         // return user info
         return userIds.map {
             val id = UUID.fromString(it)
-            val user = userHandler.get(userId = id)
+            val user = userHandler.getWithLocalCache(userId = id)
 
             FollowResponse(
                 userId = id,
