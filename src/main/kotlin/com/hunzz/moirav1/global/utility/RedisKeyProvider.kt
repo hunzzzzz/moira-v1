@@ -21,4 +21,8 @@ class RedisKeyProvider {
     // relation
     fun following(userId: UUID) = "following:$userId"
     fun follower(userId: UUID) = "follower:$userId"
+
+    // post
+    fun like(userId: UUID) = "like:$userId"
+    fun likeCount() = "likes"
 }

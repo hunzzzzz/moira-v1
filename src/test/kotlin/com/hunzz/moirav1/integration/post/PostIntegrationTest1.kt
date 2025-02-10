@@ -12,6 +12,8 @@ import com.hunzz.moirav1.global.exception.ErrorMessages.CANNOT_UPDATE_OTHERS_POS
 import com.hunzz.moirav1.global.exception.ErrorMessages.UNWRITTEN_POST_CONTENT
 import com.hunzz.moirav1.global.exception.ErrorMessages.UNWRITTEN_SCOPE
 import com.hunzz.moirav1.global.exception.ErrorResponse
+import com.hunzz.moirav1.global.utility.RedisCommands
+import com.hunzz.moirav1.global.utility.RedisKeyProvider
 import com.hunzz.moirav1.utility.TestTemplate
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,7 +23,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class PostIntegrationTest : TestTemplate() {
+class PostIntegrationTest1 : TestTemplate() {
     private lateinit var myId: UUID
 
     private lateinit var myTokens: TokenResponse
@@ -37,6 +39,12 @@ class PostIntegrationTest : TestTemplate() {
     private lateinit var postRepository: PostRepository
 
     private lateinit var postRequest: PostRequest
+
+    @Autowired
+    private lateinit var redisCommands: RedisCommands
+
+    @Autowired
+    private lateinit var redisKeyProvider: RedisKeyProvider
 
     private fun otherSignupAndLogin(): String {
         val otherSignupRequest = SignUpRequest(
@@ -107,6 +115,11 @@ class PostIntegrationTest : TestTemplate() {
         assertEquals(myId, post.userId)
         assertEquals(postRequest.content, post.content)
         assertEquals(PostScope.valueOf(postRequest.scope!!), post.scope)
+
+        // then (redis)
+        val likeCountKey = redisKeyProvider.likeCount()
+
+        assertEquals(0.0, redisCommands.zScore(key = likeCountKey, value = postId.toString()))
     }
 
     @Test

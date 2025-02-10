@@ -88,6 +88,20 @@ abstract class MockMvcRequestSender {
         ).andDo(print()).andReturn()
     }
 
+    fun likePost(postId: Long, atk: String): MvcResult {
+        return mockMvc.perform(
+            get("/posts/${postId}/like")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
+    fun unlikePost(postId: Long, atk: String): MvcResult {
+        return mockMvc.perform(
+            get("/posts/${postId}/unlike")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
     fun updatePost(postId: Long, data: String, atk: String): MvcResult {
         return mockMvc.perform(
             put("/posts/${postId}")

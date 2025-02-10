@@ -24,6 +24,26 @@ class PostController(
         return ResponseEntity.status(HttpStatus.CREATED).body(body)
     }
 
+    @GetMapping("/{postId}/like")
+    fun like(
+        @AuthPrincipal userAuth: UserAuth,
+        @PathVariable postId: Long
+    ): ResponseEntity<Unit> {
+        val body = postHandler.like(userId = userAuth.userId, postId = postId)
+
+        return ResponseEntity.ok(body)
+    }
+
+    @GetMapping("/{postId}/unlike")
+    fun unlike(
+        @AuthPrincipal userAuth: UserAuth,
+        @PathVariable postId: Long
+    ): ResponseEntity<Unit> {
+        val body = postHandler.like(userId = userAuth.userId, postId = postId, isUnlike = true)
+
+        return ResponseEntity.ok(body)
+    }
+
     @PutMapping("/{postId}")
     fun update(
         @AuthPrincipal userAuth: UserAuth,
