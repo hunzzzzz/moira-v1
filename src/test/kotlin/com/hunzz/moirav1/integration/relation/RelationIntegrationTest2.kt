@@ -1,4 +1,4 @@
-package com.hunzz.moirav1.integration
+package com.hunzz.moirav1.integration.relation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue

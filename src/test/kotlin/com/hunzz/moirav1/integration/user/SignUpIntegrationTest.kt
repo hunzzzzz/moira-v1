@@ -1,4 +1,4 @@
-package com.hunzz.moirav1.integration
+package com.hunzz.moirav1.integration.user
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.moirav1.domain.user.dto.request.SignUpRequest

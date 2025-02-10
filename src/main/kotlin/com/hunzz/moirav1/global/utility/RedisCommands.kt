@@ -50,6 +50,9 @@ class RedisCommands(
     fun zScore(key: String, value: String): Double? =
         redisTemplate.opsForZSet().score(key, value)
 
+    fun zInc(key: String, value: String, delta: Double): Double =
+        redisTemplate.opsForZSet().incrementScore(key, value, delta)!!
+
     fun zCard(key: String): Long =
         redisTemplate.opsForZSet().size(key)!!
 

@@ -34,4 +34,14 @@ object ErrorMessages {
     const val CANNOT_UNFOLLOW_ITSELF = "자신을 언팔로우할 수 없습니다."
     const val ALREADY_FOLLOWED = "이미 팔로우한 대상입니다."
     const val ALREADY_UNFOLLOWED = "잘못된 요청입니다."
+
+    // post
+    const val UNWRITTEN_POST_CONTENT = "게시글 내용은 필수 입력 항목입니다."
+    const val UNWRITTEN_SCOPE = "게시글 공개 범위는 필수 입력 항목입니다."
+    const val INVALID_POST_CONTENT = "게시글은 1자 이상, 500자 이하로 작성해주세요."
+
+    const val POST_NOT_FOUND = "존재하지 않는 게시글입니다."
+    const val CANNOT_UPDATE_OTHERS_POST = "본인의 게시글이 아닙니다."
+    const val ALREADY_LIKED = "이미 좋아요한 게시글입니다."
+    const val ALREADY_UNLIKED = "잘못된 요청입니다."
 }
