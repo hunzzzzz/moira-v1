@@ -5,8 +5,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import java.util.*
 
@@ -76,6 +75,31 @@ abstract class MockMvcRequestSender {
     fun getFollowers(userId: UUID, atk: String, cursor: UUID? = null): MvcResult {
         return mockMvc.perform(
             get("/users/${userId}/followers${if (cursor != null) "?cursor=$cursor" else ""}")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
+    fun addPost(data: String, atk: String): MvcResult {
+        return mockMvc.perform(
+            post("/posts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(data)
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
+    fun updatePost(postId: Long, data: String, atk: String): MvcResult {
+        return mockMvc.perform(
+            put("/posts/${postId}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(data)
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
+
+    fun deletePost(postId: Long, atk: String): MvcResult {
+        return mockMvc.perform(
+            delete("/posts/${postId}")
                 .header("Authorization", atk)
         ).andDo(print()).andReturn()
     }
