@@ -1,6 +1,7 @@
 package com.hunzz.moirav1.integration.post
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.hunzz.moirav1.domain.feed.repository.FeedRepository
 import com.hunzz.moirav1.domain.post.dto.request.PostRequest
 import com.hunzz.moirav1.domain.post.model.PostScope
 import com.hunzz.moirav1.domain.post.model.PostStatus
@@ -24,6 +25,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class PostIntegrationTest1 : TestTemplate() {
+    @Autowired
+    private lateinit var feedRepository: FeedRepository
+
     private lateinit var myId: UUID
 
     private lateinit var myTokens: TokenResponse
@@ -104,6 +108,18 @@ class PostIntegrationTest1 : TestTemplate() {
         // given
         val data = objectMapper.writeValueAsString(postRequest)
 
+        // given (feed)
+        val numOfDummyUsers = 10
+        val followerKey = redisKeyProvider.follower(userId = myId)
+
+        repeat(numOfDummyUsers) {
+            redisCommands.zAdd(
+                key = followerKey,
+                value = UUID.randomUUID().toString(),
+                score = System.currentTimeMillis().toDouble()
+            )
+        }
+
         // when
         val result = addPost(data = data, atk = myTokens.atk)
         val postId = result.response.contentAsString.toLong()
@@ -115,6 +131,8 @@ class PostIntegrationTest1 : TestTemplate() {
         assertEquals(myId, post.userId)
         assertEquals(postRequest.content, post.content)
         assertEquals(PostScope.valueOf(postRequest.scope!!), post.scope)
+
+        assertEquals(numOfDummyUsers, feedRepository.count().toInt())
 
         // then (redis)
         val likeCountKey = redisKeyProvider.likeCount()
