@@ -76,8 +76,9 @@ class PostHandler(
         val likeCountKey = redisKeyProvider.likeCount()
         redisCommands.zAdd(key = likeCountKey, value = postId.toString(), score = 0.0)
 
-        // send feed
-        feedEventHandler.whenAddPost(authorId = userId, postId = postId)
+        // add feed
+        if (post.scope != PostScope.PRIVATE)
+            feedEventHandler.whenAddPost(authorId = userId, postId = postId)
 
         return postId
     }
