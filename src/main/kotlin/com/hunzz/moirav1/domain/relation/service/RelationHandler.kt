@@ -1,6 +1,6 @@
 package com.hunzz.moirav1.domain.relation.service
 
-import com.hunzz.moirav1.domain.feed.service.FeedEventHandler
+import com.hunzz.moirav1.domain.feed.service.FeedHandler
 import com.hunzz.moirav1.domain.relation.dto.response.FollowResponse
 import com.hunzz.moirav1.domain.relation.model.Relation
 import com.hunzz.moirav1.domain.relation.model.RelationId
@@ -23,7 +23,7 @@ import java.util.*
 
 @Component
 class RelationHandler(
-    private val feedEventHandler: FeedEventHandler,
+    private val feedHandler: FeedHandler,
     private val redisCommands: RedisCommands,
     private val redisKeyProvider: RedisKeyProvider,
     private val relationRepository: RelationRepository,
@@ -83,7 +83,7 @@ class RelationHandler(
             relationRepository.deleteById(userRelationId)
 
             // delete feed
-            feedEventHandler.whenUnfollow(userId = userId, authorId = targetId)
+            feedHandler.whenUnfollow(userId = userId, authorId = targetId)
         } else {
             // save (redis)
             redisCommands.zAdd(key = followingKey, value = targetId.toString(), score = now)
@@ -94,7 +94,7 @@ class RelationHandler(
             relationRepository.save(userRelation)
 
             // add feed
-            feedEventHandler.whenFollow(userId = userId, authorId = targetId)
+            feedHandler.whenFollow(userId = userId, authorId = targetId)
         }
     }
 

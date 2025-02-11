@@ -1,7 +1,9 @@
 package com.hunzz.moirav1.integration.feed
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hunzz.moirav1.domain.feed.repository.FeedRepository
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.hunzz.moirav1.domain.feed.dto.response.FeedResponse
+import com.hunzz.moirav1.domain.feed.service.FeedHandler.Companion.FEED_PAGE_SIZE
 import com.hunzz.moirav1.domain.post.dto.request.PostRequest
 import com.hunzz.moirav1.domain.post.model.PostScope
 import com.hunzz.moirav1.domain.user.dto.request.LoginRequest
@@ -11,15 +13,12 @@ import com.hunzz.moirav1.utility.TestTemplate
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.servlet.MvcResult
 import java.util.*
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class FeedIntegrationTest1 : TestTemplate() {
-    @Autowired
-    private lateinit var feedRepository: FeedRepository
-
+class FeedIntegrationTest2 : TestTemplate() {
     private lateinit var myId: UUID
 
     private lateinit var myTokens: TokenResponse
@@ -38,6 +37,13 @@ class FeedIntegrationTest1 : TestTemplate() {
     private lateinit var targetSignupRequest: SignUpRequest
 
     private lateinit var targetTokens: TokenResponse
+
+    private fun getContentsFromHttpResponse(result: MvcResult): List<FeedResponse> {
+        val list: List<FeedResponse> = result.response.contentAsString
+            .let { objectMapper.readValue(it) }
+
+        return list
+    }
 
     @BeforeEach
     fun before() {
@@ -86,100 +92,80 @@ class FeedIntegrationTest1 : TestTemplate() {
     }
 
     @Test
-    fun 내가_팔로잉하는_유저A가_게시글을_등록한_경우_내_피드에_유저A의_해당_게시글이_추가() {
-        // given
+    fun 내_피드_조회() {
+        // given1 (follow target -> target add post)
         follow(targetId = targetId, atk = myTokens.atk)
-
-        // when
         val postRequest = PostRequest(
             content = "target이 작성한 게시글입니다.",
             scope = PostScope.PUBLIC.name,
         )
-        var postRequestData = objectMapper.writeValueAsString(postRequest)
+        val postRequestData = objectMapper.writeValueAsString(postRequest)
         val postId = addPost(data = postRequestData, atk = targetTokens.atk)
             .response.contentAsString.toLong()
 
-        // then
-        assertEquals(1, feedRepository.findAllByUserId(userId = myId).size)
-        assertTrue(
-            feedRepository.existsByUserIdAndPostIdAndAuthorId(
-                userId = myId,
-                postId = postId,
-                authorId = targetId
-            )
-        )
+        // when1
+        val result1 = getFeed(atk = myTokens.atk)
+        val feed1 = getContentsFromHttpResponse(result = result1)
+
+        // then1
+        assertEquals(200, result1.response.status)
+        assertEquals(1, feed1.size)
+        assertEquals(postId, feed1.first().postId)
+        assertEquals(targetId, feed1.first().userId)
+
+        // given2 (like target's post)
+        likePost(postId = postId, atk = myTokens.atk)
 
         // when2
-        postRequest.scope = PostScope.PRIVATE.name
-        postRequestData = objectMapper.writeValueAsString(postRequest)
-        val newPostId = addPost(data = postRequestData, atk = targetTokens.atk)
-            .response.contentAsString.toLong()
+        val result2 = getFeed(atk = myTokens.atk)
+        val feed2 = getContentsFromHttpResponse(result = result2)
 
-        // then
-        assertEquals(1, feedRepository.findAllByUserId(userId = myId).size)
-        assertFalse(
-            feedRepository.existsByUserIdAndPostIdAndAuthorId(
-                userId = myId,
-                postId = newPostId,
-                authorId = targetId
-            )
-        )
-    }
+        // then2
+        assertEquals(200, result2.response.status)
+        assertEquals(1, feed2.size)
+        assertEquals(postId, feed2.first().postId)
+        assertEquals(targetId, feed2.first().userId)
+        assertEquals(1, feed2.first().numOfLikes)
+        assertTrue(feed2.first().hasLike)
 
-    @Test
-    fun 내가_유저A를_팔로우하는_경우_내_피드에_유저A가_작성한_게시글들이_추가() {
-        // given
-        val numOfPosts = 10
-        val postIds = mutableListOf<Long>()
-
-        repeat(numOfPosts) {
-            val postRequest = PostRequest(
-                content = "target이 작성한 ${it + 1}번 게시글입니다.",
-                scope = PostScope.PUBLIC.name
-            )
-            val postRequestData = objectMapper.writeValueAsString(postRequest)
-            addPost(data = postRequestData, atk = targetTokens.atk)
-                .let { result -> postIds.add(result.response.contentAsString.toLong()) }
-        }
-
-        // when
-        follow(targetId = targetId, atk = myTokens.atk)
-
-        // then
-        assertEquals(numOfPosts, feedRepository.findAllByUserId(userId = myId).size)
-        assertTrue {
-            postIds.all { postId ->
-                feedRepository.existsByUserIdAndPostIdAndAuthorId(
-                    userId = myId,
-                    postId = postId,
-                    authorId = targetId
-                )
-            }
-        }
-    }
-
-    @Test
-    fun 내가_유저A를_언팔로우하는_경우_내_피드에_유저A의_작성한_게시글들이_삭제() {
-        // given
-        follow(targetId = targetId, atk = myTokens.atk)
-
-        val numOfPosts = 10
-        val postIds = mutableListOf<Long>()
-
-        repeat(numOfPosts) {
-            val postRequest = PostRequest(
-                content = "target이 작성한 ${it + 1}번 게시글입니다.",
-                scope = PostScope.PUBLIC.name
-            )
-            val postRequestData = objectMapper.writeValueAsString(postRequest)
-            addPost(data = postRequestData, atk = targetTokens.atk)
-                .let { result -> postIds.add(result.response.contentAsString.toLong()) }
-        }
-
-        // when
+        // given3 (unfollow target)
         unfollow(targetId = targetId, atk = myTokens.atk)
 
-        // then
-        assertEquals(0, feedRepository.findAllByUserIdAndAuthorId(userId = myId, authorId = targetId).size)
+        // when3
+        val result3 = getFeed(atk = myTokens.atk)
+        val feed3 = getContentsFromHttpResponse(result = result3)
+
+        // then3
+        assertEquals(200, result3.response.status)
+        assertEquals(0, feed3.size)
+
+        // given4 (target post -> follow target)
+        repeat(20) {
+            val targetPostRequest = PostRequest(
+                content = "target이 작성한 ${it + 1}번 게시글입니다.",
+                scope = PostScope.PUBLIC.name,
+            )
+            val targetPostRequestData = objectMapper.writeValueAsString(targetPostRequest)
+
+            addPost(data = targetPostRequestData, atk = targetTokens.atk)
+        }
+        follow(targetId = targetId, atk = myTokens.atk)
+
+        // when4
+        val result4FirstPage = getFeed(atk = myTokens.atk)
+        val feed4FirstPage = getContentsFromHttpResponse(result = result4FirstPage)
+
+        val cursor = feed4FirstPage.random().postId
+        val result4NextPage = getFeed(atk = myTokens.atk, cursor = cursor)
+        val feed4NextPage = getContentsFromHttpResponse(result = result4NextPage)
+
+        // then4
+        assertEquals(200, result4FirstPage.response.status)
+        assertEquals(FEED_PAGE_SIZE, feed4FirstPage.size)
+        assertTrue { feed4FirstPage.first().postId > feed4FirstPage.last().postId }
+
+        assertEquals(200, result4NextPage.response.status)
+        assertEquals(FEED_PAGE_SIZE, feed4NextPage.size)
+        assertTrue { feed4NextPage.any { cursor > it.postId } }
     }
 }

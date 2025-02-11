@@ -3,7 +3,7 @@ package com.hunzz.moirav1.domain.feed.dto.response
 import com.hunzz.moirav1.domain.post.model.PostScope
 import java.util.*
 
-data class FeedResponse(
+data class FeedQueryDslResponse(
     val postId: Long,
     val userId: UUID,
     val userName: String,
