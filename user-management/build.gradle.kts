@@ -6,6 +6,7 @@ extra["springCloudVersion"] = "2024.0.0"
 plugins {
 	kotlin("jvm") version "2.1.0"
 	kotlin("plugin.spring") version "2.1.0"
+	kotlin("plugin.jpa") version "2.1.0"
 	id("org.springframework.boot") version "3.4.2"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -28,12 +29,19 @@ allprojects {
 subprojects {
 	apply(plugin = "org.jetbrains.kotlin.jvm")
 	apply(plugin = "org.jetbrains.kotlin.plugin.spring")
+	apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	apply(plugin = "org.springframework.boot")
 	apply(plugin = "io.spring.dependency-management")
 
 	dependencies {
+		// database
+		runtimeOnly("com.mysql:mysql-connector-j")
 		// kotlin
 		implementation("org.jetbrains.kotlin:kotlin-reflect")
+		// springboot
+		implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+		implementation("org.springframework.boot:spring-boot-starter-validation")
+		implementation("org.springframework.boot:spring-boot-starter-web")
 		// spring cloud
 		implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
 		implementation("org.springframework.cloud:spring-cloud-starter-bus-kafka")

@@ -1,0 +1,12 @@
+spring:
+  # get config properties from .env file
+  config:
+    import: optional:file:.env[.properties]
+  # set profiles
+  profiles:
+    active: ${PROFILE_ACTIVE}
+  # config-server
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL}
+      name: eureka-client, kafka-bus, actuator, mysql-update, redis, jwt
