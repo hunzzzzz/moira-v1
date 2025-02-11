@@ -117,4 +117,11 @@ abstract class MockMvcRequestSender {
                 .header("Authorization", atk)
         ).andDo(print()).andReturn()
     }
+
+    fun getFeed(atk: String, cursor: Long? = null): MvcResult {
+        return mockMvc.perform(
+            get("/posts${if (cursor != null) "?cursor=$cursor" else ""}")
+                .header("Authorization", atk)
+        ).andDo(print()).andReturn()
+    }
 }

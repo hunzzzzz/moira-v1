@@ -2,7 +2,7 @@ from locust import task, FastHttpUser, between
 import random
 
 class Test(FastHttpUser):
-    wait_time = between(1, 3)
+    wait_time = between(1, 5)
     connection_timeout = 30.0
     network_timeout = 30.0
 

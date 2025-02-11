@@ -1,5 +1,6 @@
 package com.hunzz.moirav1.domain.post.service
 
+import com.hunzz.moirav1.domain.feed.service.FeedHandler
 import com.hunzz.moirav1.domain.post.dto.request.PostRequest
 import com.hunzz.moirav1.domain.post.model.Post
 import com.hunzz.moirav1.domain.post.model.PostScope
@@ -20,6 +21,7 @@ import java.util.*
 
 @Service
 class PostHandler(
+    private val feedHandler: FeedHandler,
     private val postRepository: PostRepository,
     private val redisCommands: RedisCommands,
     private val redisKeyProvider: RedisKeyProvider
@@ -73,6 +75,10 @@ class PostHandler(
         // set 'like count' 0 in redis
         val likeCountKey = redisKeyProvider.likeCount()
         redisCommands.zAdd(key = likeCountKey, value = postId.toString(), score = 0.0)
+
+        // add feed
+        if (post.scope != PostScope.PRIVATE)
+            feedHandler.whenAddPost(authorId = userId, postId = postId)
 
         return postId
     }
