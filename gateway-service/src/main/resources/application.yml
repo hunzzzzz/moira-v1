@@ -3,7 +3,14 @@ server:
 
 spring:
   application:
-    name: gateway-service
+    name: gateway-server
   cloud:
     gateway:
       routes:
+        # user server (without auth)
+        - id: user-server
+          uri: lb://USER-SERVER
+          predicates:
+            - Path=/user-server/actuator/**, /user-server/signup/**,
+          filters:
+            - RewritePath=/user-server/(?<segment>.*), /$\{segment}

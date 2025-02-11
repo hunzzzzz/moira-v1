@@ -38,6 +38,8 @@ subprojects {
 		runtimeOnly("com.mysql:mysql-connector-j")
 		// kotlin
 		implementation("org.jetbrains.kotlin:kotlin-reflect")
+		// redis
+		implementation("org.springframework.boot:spring-boot-starter-data-redis")
 		// springboot
 		implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 		implementation("org.springframework.boot:spring-boot-starter-validation")
