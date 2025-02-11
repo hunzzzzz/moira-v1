@@ -81,6 +81,9 @@ class RelationHandler(
             // delete (db)
             val userRelationId = RelationId(userId = userId, targetId = targetId)
             relationRepository.deleteById(userRelationId)
+
+            // delete feed
+            feedEventHandler.whenUnfollow(userId = userId, authorId = targetId)
         } else {
             // save (redis)
             redisCommands.zAdd(key = followingKey, value = targetId.toString(), score = now)

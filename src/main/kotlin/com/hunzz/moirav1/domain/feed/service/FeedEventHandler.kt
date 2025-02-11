@@ -49,4 +49,9 @@ class FeedEventHandler(
             feedRepository.save(postQueue)
         }
     }
+
+    // 유저 A가 유저 B를 언팔로우할 때, 유저 A(user)의 피드에 유저 B(author)의 게시글들이 삭제된다.
+    fun whenUnfollow(userId: UUID, authorId: UUID) {
+        feedRepository.deleteAllByUserIdAndAuthorId(userId = userId, authorId = authorId)
+    }
 }
