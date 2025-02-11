@@ -128,4 +128,55 @@ class FeedIntegrationTest1 : TestTemplate() {
             )
         )
     }
+
+    @Test
+    fun 내가_유저A를_팔로우하는_경우_내_피드에_유저A가_작성한_게시글들이_추가() {
+        // given
+        val targetSignupRequest = SignUpRequest(
+            email = "target@example.com",
+            password = "Target1234!",
+            password2 = "Target1234!",
+            name = "target"
+        )
+        val targetSignupData = objectMapper.writeValueAsString(targetSignupRequest)
+        val targetId = signup(data = targetSignupData).response.contentAsString
+            .let { it.substring(1, it.length - 1) }
+            .let { UUID.fromString(it) }
+
+        val targetLoginRequest = LoginRequest(
+            email = targetSignupRequest.email,
+            password = targetSignupRequest.password,
+        )
+        val targetLoginData = objectMapper.writeValueAsString(targetLoginRequest)
+        val targetTokens = login(data = targetLoginData).response.contentAsString
+            .let { objectMapper.readValue(it, TokenResponse::class.java) }
+
+        val numOfPosts = 10
+        val postIds = mutableListOf<Long>()
+
+        repeat(numOfPosts) {
+            val postRequest = PostRequest(
+                content = "target이 작성한 ${it + 1}번 게시글입니다.",
+                scope = PostScope.PUBLIC.name
+            )
+            val postRequestData = objectMapper.writeValueAsString(postRequest)
+            addPost(data = postRequestData, atk = targetTokens.atk)
+                .let { result -> postIds.add(result.response.contentAsString.toLong()) }
+        }
+
+        // when
+        follow(targetId = targetId, atk = myTokens.atk)
+
+        // then
+        assertEquals(numOfPosts, feedRepository.findAllByUserId(userId = myId).size)
+        assertTrue {
+            postIds.all { postId ->
+                feedRepository.existsByUserIdAndPostIdAndAuthorId(
+                    userId = myId,
+                    postId = postId,
+                    authorId = targetId
+                )
+            }
+        }
+    }
 }
