@@ -30,4 +30,11 @@ class RedisCommands(
 
     fun sIsMember(key: String, value: String): Boolean =
         redisTemplate.opsForSet().isMember(key, value)!!
+
+    // z-set
+    fun zAdd(key: String, value: String, score: Double): Boolean =
+        redisTemplate.opsForZSet().add(key, value, score)!!
+
+    fun zScore(key: String, value: String): Double? =
+        redisTemplate.opsForZSet().score(key, value)
 }

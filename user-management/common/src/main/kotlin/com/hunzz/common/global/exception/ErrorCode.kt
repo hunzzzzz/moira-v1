@@ -13,6 +13,11 @@ enum class ErrorCode(val message: String) {
     // user
     DIFFERENT_TWO_PASSWORDS("두 비밀번호가 일치하지 않습니다."),
     DUPLICATED_EMAIL("이미 사용 중인 이메일입니다."),
+    USER_NOT_FOUND("존재하지 않는 유저입니다."),
+
+    // auth
+    INVALID_LOGIN_INFO("이메일 혹은 비밀번호가 잘못되었습니다. 다시 확인해주세요."),
+    BANNED_USER_CANNOT_LOGIN("계정이 정지되어 로그인이 불가능합니다."),
 
     // admin
     INVALID_ADMIN_CODE("잘못된 어드민 가입 코드입니다.")
