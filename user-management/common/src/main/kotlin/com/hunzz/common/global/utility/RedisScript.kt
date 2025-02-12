@@ -30,7 +30,7 @@ class RedisScript(
         
         -- 어드민 코드 검증
         if input_admin_code ~= '' then
-            local stored_admin_code = redis.call('GET', admin_signup_code)
+            local stored_admin_code = redis.call('GET', 'admin_signup_code')
             if stored_admin_code ~= input_admin_code then
                 return 'INVALID_ADMIN_CODE'
             end

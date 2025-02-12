@@ -8,6 +8,12 @@ import java.util.concurrent.TimeUnit
 class RedisCommands(
     private val redisTemplate: RedisTemplate<String, String>
 ) {
+    fun delete(key: String): Boolean =
+        redisTemplate.delete(key)
+
+    fun deleteAll(): Unit =
+        redisTemplate.keys("*").forEach { redisTemplate.delete(it) }
+
     // string
     fun set(key: String, value: String): Unit =
         redisTemplate.opsForValue().set(key, value)
@@ -17,4 +23,11 @@ class RedisCommands(
 
     fun get(key: String): String? =
         redisTemplate.opsForValue().get(key)
+
+    // set
+    fun sAdd(key: String, value: String): Long =
+        redisTemplate.opsForSet().add(key, value)!!
+
+    fun sIsMember(key: String, value: String): Boolean =
+        redisTemplate.opsForSet().isMember(key, value)!!
 }

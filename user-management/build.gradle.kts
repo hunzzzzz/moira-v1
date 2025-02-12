@@ -2,6 +2,8 @@ val bootJar: org.springframework.boot.gradle.tasks.bundling.BootJar by tasks
 bootJar.enabled = false
 
 extra["springCloudVersion"] = "2024.0.0"
+extra["redisTestContainersVersion"] = "2.2.2"
+extra["testContainersVersion"] = "1.20.4"
 
 plugins {
     kotlin("jvm") version "2.1.0"
@@ -53,6 +55,8 @@ subprojects {
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+        testImplementation("org.testcontainers:testcontainers:${property("testContainersVersion")}")
+        testImplementation("com.redis:testcontainers-redis:${property("redisTestContainersVersion")}")
     }
 
     dependencyManagement {
