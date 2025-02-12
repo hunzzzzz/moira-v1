@@ -1,5 +1,7 @@
-from locust import task, FastHttpUser, between
 import uuid
+
+from locust import task, FastHttpUser, between
+
 
 class Test(FastHttpUser):
     wait_time = between(1, 3)
@@ -9,7 +11,7 @@ class Test(FastHttpUser):
     @task
     def signup(self):
         random_num = uuid.uuid4()
-        json={"email": f"{random_num}@example.com", "password":"Temp1234!", "password2": "Temp1234!", "name": "테스트"}
+        json = {"email": f"{random_num}@example.com", "password": "Temp1234!", "password2": "Temp1234!", "name": "테스트"}
         response = self.client.post("/user-server/signup", json=json)
 
         if response.status_code != 201:

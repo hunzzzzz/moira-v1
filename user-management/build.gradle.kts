@@ -36,6 +36,8 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     dependencies {
+        // cache
+        implementation("com.github.ben-manes.caffeine:caffeine")
         // database
         runtimeOnly("com.mysql:mysql-connector-j")
         // kotlin
