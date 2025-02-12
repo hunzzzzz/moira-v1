@@ -1,3 +1,5 @@
 package com.hunzz.common.global.exception.custom
 
-class InvalidAdminRequestException(message: String) : RuntimeException(message)
+import com.hunzz.common.global.exception.ErrorCode
+
+class InvalidAdminRequestException(errorCode: ErrorCode) : RuntimeException(errorCode.message)

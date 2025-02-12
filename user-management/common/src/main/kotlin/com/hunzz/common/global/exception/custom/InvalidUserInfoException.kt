@@ -1,3 +1,5 @@
 package com.hunzz.common.global.exception.custom
 
-class InvalidUserInfoException(message: String) : RuntimeException(message)
+import com.hunzz.common.global.exception.ErrorCode
+
+class InvalidUserInfoException(errorCode: ErrorCode) : RuntimeException(errorCode.message)

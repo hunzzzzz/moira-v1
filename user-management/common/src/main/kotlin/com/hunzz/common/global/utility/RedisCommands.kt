@@ -17,11 +17,4 @@ class RedisCommands(
 
     fun get(key: String): String? =
         redisTemplate.opsForValue().get(key)
-
-    // set
-    fun sAdd(key: String, value: String): Long =
-        redisTemplate.opsForSet().add(key, value)!!
-
-    fun sIsMember(key: String, value: String): Boolean =
-        redisTemplate.opsForSet().isMember(key, value)!!
 }
