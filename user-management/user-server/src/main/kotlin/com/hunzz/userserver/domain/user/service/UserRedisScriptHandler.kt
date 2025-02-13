@@ -1,65 +1,46 @@
 package com.hunzz.userserver.domain.user.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hunzz.common.domain.user.model.User
 import com.hunzz.common.domain.user.model.UserAuth
 import com.hunzz.common.global.exception.ErrorCode.DUPLICATED_EMAIL
 import com.hunzz.common.global.exception.ErrorCode.INVALID_ADMIN_CODE
 import com.hunzz.common.global.exception.custom.InvalidAdminRequestException
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
-import com.hunzz.common.global.utility.RedisCommands
 import com.hunzz.common.global.utility.RedisKeyProvider
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
 
 @Component
-class UserChecker(
+class UserRedisScriptHandler(
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
-) : RedisCommands(redisTemplate = redisTemplate) {
-    private val signupValidationScript = """
-        local emails_key = KEYS[1]
-        local admin_code_key = KEYS[2]
-        local email = ARGV[1]
-        local input_admin_code = ARGV[2]
-        
-        -- 이메일 중복 검증
-        if redis.call('SISMEMBER', emails_key, email) == 1 then
-            return 'DUPLICATED_EMAIL'
-        end
-        
-        -- 어드민 코드 검증
-        if input_admin_code ~= '' then
-            local stored_admin_code = redis.call('GET', 'admin_signup_code')
-            if stored_admin_code ~= input_admin_code then
-                return 'INVALID_ADMIN_CODE'
-            end
-        end
-        
-        return 'VALID'
-    """.trimIndent()
-
-    private val signupScript = """
-        local emails_key = KEYS[1]
-        local ids_key = KEYS[2]
-        local authKey = KEYS[3]
-        local email = ARGV[1]
-        local id = ARGV[2]
-        local userAuth = ARGV[3]
-
-        -- 이메일 저장
-        redis.call('SADD', emails_key, email)
-        -- id 저장
-        redis.call('SADD', ids_key, id)
-        -- 유저 인증 정보 저장
-        redis.call('SET', authKey, userAuth)
-
-        return nil
-    """.trimIndent()
-
+) {
     fun checkSignupRequest(inputEmail: String, inputAdminCode: String?) {
+        // script
+        val signupValidationScript = """
+            local emails_key = KEYS[1]
+            local admin_code_key = KEYS[2]
+            local email = ARGV[1]
+            local input_admin_code = ARGV[2]
+            
+            -- 이메일 중복 검증
+            if redis.call('SISMEMBER', emails_key, email) == 1 then
+                return 'DUPLICATED_EMAIL'
+            end
+            
+            -- 어드민 코드 검증
+            if input_admin_code ~= '' then
+                local stored_admin_code = redis.call('GET', 'admin_signup_code')
+                if stored_admin_code ~= input_admin_code then
+                    return 'INVALID_ADMIN_CODE'
+                end
+            end
+            
+            return 'VALID'
+        """.trimIndent()
+
         // redis keys
         val emailsKey = redisKeyProvider.emails()
         val adminCodeKey = redisKeyProvider.adminCode()
@@ -84,19 +65,30 @@ class UserChecker(
         }
     }
 
-    fun signup(user: User) {
+    fun signup(userAuth: UserAuth) {
+        // script
+        val signupScript = """
+            local emails_key = KEYS[1]
+            local ids_key = KEYS[2]
+            local authKey = KEYS[3]
+            local email = ARGV[1]
+            local id = ARGV[2]
+            local userAuth = ARGV[3]
+    
+            -- 이메일 저장
+            redis.call('SADD', emails_key, email)
+            -- id 저장
+            redis.call('SADD', ids_key, id)
+            -- 유저 인증 정보 저장
+            redis.call('SET', authKey, userAuth)
+    
+            return nil
+        """.trimIndent()
+
         // redis keys
         val emailsKey = redisKeyProvider.emails()
         val idsKey = redisKeyProvider.ids()
-        val authKey = redisKeyProvider.auth(email = user.email)
-
-        // user auth
-        val userAuth = UserAuth(
-            userId = user.id!!,
-            role = user.role,
-            email = user.email,
-            password = user.password
-        )
+        val authKey = redisKeyProvider.auth(email = userAuth.email)
 
         // execute script
         redisTemplate.execute(

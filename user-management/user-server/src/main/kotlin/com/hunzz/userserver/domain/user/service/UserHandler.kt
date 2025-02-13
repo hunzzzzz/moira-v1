@@ -1,20 +1,23 @@
 package com.hunzz.userserver.domain.user.service
 
-import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
 import com.hunzz.common.domain.user.model.User
+import com.hunzz.common.domain.user.model.UserAuth
 import com.hunzz.common.domain.user.model.UserRole
 import com.hunzz.common.domain.user.repository.UserRepository
 import com.hunzz.common.global.exception.ErrorCode.DIFFERENT_TWO_PASSWORDS
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
+import com.hunzz.common.global.utility.KafkaProducer
 import com.hunzz.common.global.utility.PasswordEncoder
+import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Component
 class UserHandler(
+    private val kafkaProducer: KafkaProducer,
     private val passwordEncoder: PasswordEncoder,
-    private val userChecker: UserChecker,
+    private val userRedisScriptHandler: UserRedisScriptHandler,
     private val userRepository: UserRepository
 ) {
     private fun isEqualPasswords(password1: String, password2: String) {
@@ -27,7 +30,7 @@ class UserHandler(
     fun save(request: SignUpRequest): UUID {
         // validate
         isEqualPasswords(password1 = request.password!!, password2 = request.password2!!)
-        userChecker.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
+        userRedisScriptHandler.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
 
         // encrypt
         val encodedPassword = passwordEncoder.encodePassword(rawPassword = request.password!!)
@@ -44,8 +47,14 @@ class UserHandler(
                 )
             )
 
-        // save (redis)
-        userChecker.signup(user = user)
+        // send kafka message (redis command)
+        val userAuth = UserAuth(
+            userId = user.id!!,
+            role = user.role,
+            email = user.email,
+            password = user.password
+        )
+        kafkaProducer.send(topic = "signup", data = userAuth)
 
         return user.id!!
     }
