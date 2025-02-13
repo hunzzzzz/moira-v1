@@ -42,9 +42,9 @@ class JwtAuthorizationFilter(
 
             // check atk blacklist
             val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
-            val isNotBlocked = redisCommands.get(key = blockedAtkKey) == null
+            val isBlocked = redisCommands.get(key = blockedAtkKey) != null
 
-            require(isNotBlocked) { throw JwtException(EXPIRED_AUTH) }
+            if (isBlocked) throw JwtException(EXPIRED_AUTH)
 
             chain.filter(exchange)
         }

@@ -4,6 +4,8 @@ import com.hunzz.authserver.domain.auth.dto.request.LoginRequest
 import com.hunzz.authserver.domain.auth.dto.response.TokenResponse
 import com.hunzz.common.global.utility.JwtProvider
 import com.hunzz.common.global.utility.KafkaProducer
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.stereotype.Component
 
 @Component
@@ -26,5 +28,13 @@ class AuthHandler(
         kafkaProducer.send(topic = "login", data = mapOf("email" to email, "rtk" to rtk))
 
         return TokenResponse(atk = atk, rtk = rtk)
+    }
+
+    fun logout(email: String, httpServletRequest: HttpServletRequest) {
+        // get atk
+        val atk = httpServletRequest.getHeader(AUTHORIZATION)
+
+        // send kafka message (redis command)
+        kafkaProducer.send(topic = "logout", data = mapOf("email" to email, "atk" to atk))
     }
 }

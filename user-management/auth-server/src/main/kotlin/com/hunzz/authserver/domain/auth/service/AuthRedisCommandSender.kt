@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthRedisCommandSender(
+    private val authRedisScriptHandler: AuthRedisScriptHandler,
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
@@ -19,8 +20,16 @@ class AuthRedisCommandSender(
         val email = data["email"] as String
         val rtk = data["rtk"] as String
 
-        // save rtk in redis
         val rtkKey = redisKeyProvider.rtk(email = email)
         redisTemplate.opsForValue().set(rtkKey, rtk)
+    }
+
+    @KafkaListener(topics = ["logout"], groupId = "auth-server")
+    fun logout(message: String) {
+        val data = objectMapper.readValue(message, object : TypeReference<Map<String, Any>>() {})
+        val email = data["email"] as String
+        val atk = data["atk"] as String
+
+        authRedisScriptHandler.logout(atk = atk, email = email)
     }
 }

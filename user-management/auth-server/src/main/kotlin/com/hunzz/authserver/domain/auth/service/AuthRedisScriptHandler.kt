@@ -9,12 +9,16 @@ import com.hunzz.common.global.exception.custom.InvalidUserInfoException
 import com.hunzz.common.global.utility.PasswordEncoder
 import com.hunzz.common.global.utility.RedisKeyProvider
 import com.hunzz.common.global.utility.UserAuthProvider
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
 
 @Component
 class AuthRedisScriptHandler(
+    @Value("\${jwt.expiration-time.atk}")
+    private val expirationTimeOfAtk: Long,
+
     private val objectMapper: ObjectMapper,
     private val passwordEncoder: PasswordEncoder,
     private val redisKeyProvider: RedisKeyProvider,
@@ -82,5 +86,34 @@ class AuthRedisScriptHandler(
                 else return userAuth!!
             }
         }
+    }
+
+    fun logout(atk: String, email: String) {
+        // script
+        val logoutScript = """
+            local blocked_atk_key = KEYS[1]
+            local rtk_key = KEYS[2]
+            local atk = ARGV[1]
+            local atk_exp_time = ARGV[2]
+            
+            -- 로그아웃 유저의 ATK 차단
+            redis.call('SET', blocked_atk_key, atk, 'PX', atk_exp_time)
+            -- RTK 삭제
+            redis.call('DEL', rtk_key)
+            
+            return nil
+        """.trimIndent()
+
+        // redis keys
+        val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
+        val rtkKey = redisKeyProvider.rtk(email = email)
+
+        // execute script
+        redisTemplate.execute(
+            RedisScript.of(logoutScript, String::class.java),
+            listOf(blockedAtkKey, rtkKey),
+            atk,
+            expirationTimeOfAtk.toString()
+        )
     }
 }

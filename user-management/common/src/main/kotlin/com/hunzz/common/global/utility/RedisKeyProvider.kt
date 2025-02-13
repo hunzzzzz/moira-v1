@@ -7,6 +7,9 @@ class RedisKeyProvider {
     // admin
     fun adminCode() = "admin_signup_code"
     fun bannedUsers() = "banned_users"
+
+    // auth
+    fun blockedAtk(atk: String) = "blocked_atk::$atk"
     fun rtk(email: String) = "rtk::$email"
 
     // user

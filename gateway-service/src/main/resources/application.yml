@@ -29,3 +29,11 @@ spring:
             - Path=/auth-server/actuator/**, /auth-server/login/**,
           filters:
             - RewritePath=/auth-server/(?<segment>.*), /$\{segment}
+        # auth server
+        - id: auth-server
+          uri: lb://AUTH-SERVER
+          predicates:
+            - Path=/auth-server/logout/**
+          filters:
+            - RewritePath=/auth-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
