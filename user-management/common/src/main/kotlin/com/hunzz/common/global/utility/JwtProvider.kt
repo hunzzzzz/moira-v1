@@ -1,4 +1,4 @@
-package com.hunzz.authserver.domain.auth.service
+package com.hunzz.common.global.utility
 
 import com.hunzz.common.domain.user.model.UserAuth
 import io.jsonwebtoken.Claims

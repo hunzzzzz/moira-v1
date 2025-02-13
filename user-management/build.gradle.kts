@@ -1,6 +1,7 @@
 val bootJar: org.springframework.boot.gradle.tasks.bundling.BootJar by tasks
 bootJar.enabled = false
 
+extra["jwtVersion"] = "0.12.6"
 extra["springCloudVersion"] = "2024.0.0"
 extra["redisTestContainersVersion"] = "2.2.2"
 extra["testContainersVersion"] = "1.20.4"
@@ -40,6 +41,10 @@ subprojects {
         implementation("com.github.ben-manes.caffeine:caffeine")
         // database
         runtimeOnly("com.mysql:mysql-connector-j")
+        // jwt
+        implementation("io.jsonwebtoken:jjwt-api:${property("jwtVersion")}")
+        runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jwtVersion")}")
+        runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jwtVersion")}")
         // kotlin
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         // redis

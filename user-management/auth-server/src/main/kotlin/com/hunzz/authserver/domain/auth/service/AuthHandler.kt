@@ -2,6 +2,7 @@ package com.hunzz.authserver.domain.auth.service
 
 import com.hunzz.authserver.domain.auth.dto.request.LoginRequest
 import com.hunzz.authserver.domain.auth.dto.response.TokenResponse
+import com.hunzz.common.global.utility.JwtProvider
 import com.hunzz.common.global.utility.KafkaProducer
 import org.springframework.stereotype.Component
 

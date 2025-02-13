@@ -1,14 +1,18 @@
 package com.hunzz.userserver.domain.user.service
 
 import com.hunzz.common.domain.user.model.User
-import com.hunzz.common.domain.user.model.UserAuth
 import com.hunzz.common.domain.user.model.UserRole
 import com.hunzz.common.domain.user.repository.UserRepository
 import com.hunzz.common.global.exception.ErrorCode.DIFFERENT_TWO_PASSWORDS
+import com.hunzz.common.global.exception.ErrorCode.USER_NOT_FOUND
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
 import com.hunzz.common.global.utility.KafkaProducer
 import com.hunzz.common.global.utility.PasswordEncoder
 import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
+import com.hunzz.userserver.domain.user.dto.response.UserResponse
+import org.springframework.aop.framework.AopContext
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -20,6 +24,8 @@ class UserHandler(
     private val userRedisScriptHandler: UserRedisScriptHandler,
     private val userRepository: UserRepository
 ) {
+    private fun proxy() = AopContext.currentProxy() as UserHandler
+
     private fun isEqualPasswords(password1: String, password2: String) {
         val condition = password1 == password2
 
@@ -51,5 +57,33 @@ class UserHandler(
         kafkaProducer.send(topic = "signup", data = user)
 
         return user.id!!
+    }
+
+    fun get(userId: UUID, targetId: UUID): UserResponse {
+        val user = proxy().getWithLocalCache(userId = targetId)
+
+        return UserResponse(
+            id = user.id!!,
+            status = user.status,
+            email = user.email,
+            name = user.name,
+            imageUrl = user.imageUrl,
+            isMyProfile = userId == targetId
+        )
+    }
+
+    fun get(userId: UUID): User {
+        return userRepository.findByIdOrNull(id = userId)
+            ?: throw InvalidUserInfoException(USER_NOT_FOUND)
+    }
+
+    @Cacheable(cacheNames = ["user"], cacheManager = "redisCacheManager")
+    fun getWithRedisCache(userId: UUID): User {
+        return get(userId = userId)
+    }
+
+    @Cacheable(cacheNames = ["user"], cacheManager = "localCacheManager")
+    fun getWithLocalCache(userId: UUID): User {
+        return getWithRedisCache(userId = userId)
     }
 }

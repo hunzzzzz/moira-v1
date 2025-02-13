@@ -14,6 +14,14 @@ spring:
             - Path=/user-server/actuator/**, /user-server/signup/**,
           filters:
             - RewritePath=/user-server/(?<segment>.*), /$\{segment}
+        # user server
+        - id: user-server
+          uri: lb://USER-SERVER
+          predicates:
+            - Path=/user-server/users/**
+          filters:
+            - RewritePath=/user-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
         # auth server (without auth)
         - id: auth-server
           uri: lb://AUTH-SERVER
