@@ -1,13 +1,12 @@
-package com.hunzz.common.domain.user.service
+package com.hunzz.userserver.domain.user.service
 
-import com.hunzz.common.domain.user.dto.request.SignUpRequest
+import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
 import com.hunzz.common.domain.user.model.User
 import com.hunzz.common.domain.user.model.UserRole
 import com.hunzz.common.domain.user.repository.UserRepository
 import com.hunzz.common.global.exception.ErrorCode.DIFFERENT_TWO_PASSWORDS
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
 import com.hunzz.common.global.utility.PasswordEncoder
-import com.hunzz.common.global.utility.RedisScript
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -15,7 +14,7 @@ import java.util.*
 @Component
 class UserHandler(
     private val passwordEncoder: PasswordEncoder,
-    private val redisScript: RedisScript,
+    private val userChecker: UserChecker,
     private val userRepository: UserRepository
 ) {
     private fun isEqualPasswords(password1: String, password2: String) {
@@ -28,7 +27,7 @@ class UserHandler(
     fun save(request: SignUpRequest): UUID {
         // validate
         isEqualPasswords(password1 = request.password!!, password2 = request.password2!!)
-        redisScript.isValidSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
+        userChecker.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
 
         // encrypt
         val encodedPassword = passwordEncoder.encodePassword(rawPassword = request.password!!)
@@ -46,7 +45,7 @@ class UserHandler(
             )
 
         // save (redis)
-        redisScript.signup(user = user)
+        userChecker.signup(user = user)
 
         return user.id!!
     }

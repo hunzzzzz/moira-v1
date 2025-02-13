@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthHandler(
-    private val authRedisScriptHandler: AuthRedisScriptHandler,
+    private val authChecker: AuthChecker,
     private val jwtProvider: JwtProvider,
     private val redisCommands: RedisCommands,
     private val redisKeyProvider: RedisKeyProvider
@@ -17,7 +17,7 @@ class AuthHandler(
         // validate & get user auth
         val email = request.email!!
         val password = request.password!!
-        val userAuth = authRedisScriptHandler.checkLoginRequest(inputEmail = email, inputPassword = password)
+        val userAuth = authChecker.checkLoginRequest(inputEmail = email, inputPassword = password)
 
         // create token
         val atk = jwtProvider.createAccessToken(userAuth = userAuth)

@@ -14,7 +14,7 @@ import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
 
 @Component
-class AuthRedisScriptHandler(
+class AuthChecker(
     private val objectMapper: ObjectMapper,
     private val passwordEncoder: PasswordEncoder,
     private val redisKeyProvider: RedisKeyProvider,

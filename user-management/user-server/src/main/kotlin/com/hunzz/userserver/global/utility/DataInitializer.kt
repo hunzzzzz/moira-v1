@@ -1,7 +1,7 @@
 package com.hunzz.userserver.global.utility
 
-import com.hunzz.common.domain.user.dto.request.SignUpRequest
-import com.hunzz.common.domain.user.service.UserHandler
+import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
+import com.hunzz.userserver.domain.user.service.UserHandler
 import com.hunzz.common.global.utility.RedisCommands
 import com.hunzz.common.global.utility.RedisKeyProvider
 import org.springframework.boot.CommandLineRunner

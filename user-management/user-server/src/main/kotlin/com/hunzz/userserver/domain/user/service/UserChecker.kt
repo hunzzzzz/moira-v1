@@ -1,4 +1,4 @@
-package com.hunzz.common.global.utility
+package com.hunzz.userserver.domain.user.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.common.domain.user.model.User
@@ -7,12 +7,14 @@ import com.hunzz.common.global.exception.ErrorCode.DUPLICATED_EMAIL
 import com.hunzz.common.global.exception.ErrorCode.INVALID_ADMIN_CODE
 import com.hunzz.common.global.exception.custom.InvalidAdminRequestException
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
+import com.hunzz.common.global.utility.RedisCommands
+import com.hunzz.common.global.utility.RedisKeyProvider
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
 
 @Component
-class RedisScript(
+class UserChecker(
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
@@ -57,7 +59,7 @@ class RedisScript(
         return nil
     """.trimIndent()
 
-    fun isValidSignupRequest(inputEmail: String, inputAdminCode: String?) {
+    fun checkSignupRequest(inputEmail: String, inputAdminCode: String?) {
         // redis keys
         val emailsKey = redisKeyProvider.emails()
         val adminCodeKey = redisKeyProvider.adminCode()

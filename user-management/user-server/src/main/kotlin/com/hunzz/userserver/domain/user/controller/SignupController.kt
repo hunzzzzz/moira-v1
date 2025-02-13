@@ -1,7 +1,7 @@
 package com.hunzz.userserver.domain.user.controller
 
-import com.hunzz.common.domain.user.dto.request.SignUpRequest
-import com.hunzz.common.domain.user.service.UserHandler
+import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
+import com.hunzz.userserver.domain.user.service.UserHandler
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
