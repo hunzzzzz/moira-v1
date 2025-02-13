@@ -48,13 +48,7 @@ class UserHandler(
             )
 
         // send kafka message (redis command)
-        val userAuth = UserAuth(
-            userId = user.id!!,
-            role = user.role,
-            email = user.email,
-            password = user.password
-        )
-        kafkaProducer.send(topic = "signup", data = userAuth)
+        kafkaProducer.send(topic = "signup", data = user)
 
         return user.id!!
     }

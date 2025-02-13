@@ -12,7 +12,7 @@ class AuthHandler(
     private val kafkaProducer: KafkaProducer
 ) {
     fun login(request: LoginRequest): TokenResponse {
-        // validate & get user auth
+        // validate
         val email = request.email!!
         val password = request.password!!
         val userAuth = authRedisScriptHandler.checkLoginRequest(inputEmail = email, inputPassword = password)
