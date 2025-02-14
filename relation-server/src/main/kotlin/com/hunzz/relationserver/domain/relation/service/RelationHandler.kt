@@ -1,8 +1,5 @@
 package com.hunzz.relationserver.domain.relation.service
 
-import com.hunzz.relationserver.domain.relation.model.Relation
-import com.hunzz.relationserver.domain.relation.model.RelationId
-import com.hunzz.relationserver.domain.relation.repository.RelationRepository
 import com.hunzz.relationserver.global.exception.ErrorCode.CANNOT_FOLLOW_ITSELF
 import com.hunzz.relationserver.global.exception.ErrorCode.CANNOT_UNFOLLOW_ITSELF
 import com.hunzz.relationserver.global.exception.custom.InvalidRelationException
@@ -14,8 +11,7 @@ import java.util.*
 @Component
 class RelationHandler(
     private val kafkaProducer: KafkaProducer,
-    private val relationRedisScriptHandler: RelationRedisScriptHandler,
-    private val relationRepository: RelationRepository
+    private val relationRedisScriptHandler: RelationRedisScriptHandler
 ) {
     @Transactional
     fun follow(userId: UUID, targetId: UUID) {
@@ -27,10 +23,6 @@ class RelationHandler(
 
         // send kafka message (redis command)
         kafkaProducer.send("follow", mapOf("userId" to userId, "targetId" to targetId))
-
-        // save follow info in db
-        val userRelation = Relation(userId = userId, targetId = targetId)
-        relationRepository.save(userRelation)
     }
 
     @Transactional
@@ -43,9 +35,5 @@ class RelationHandler(
 
         // send kafka message (redis command)
         kafkaProducer.send("unfollow", mapOf("userId" to userId, "targetId" to targetId))
-
-        // delete follow info from db
-        val relationId = RelationId(userId = userId, targetId = targetId)
-        relationRepository.deleteById(relationId)
     }
 }

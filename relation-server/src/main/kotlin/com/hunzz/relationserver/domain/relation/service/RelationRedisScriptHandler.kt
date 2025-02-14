@@ -1,5 +1,7 @@
 package com.hunzz.relationserver.domain.relation.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.hunzz.relationserver.domain.relation.model.RelationId
 import com.hunzz.relationserver.global.exception.ErrorCode.*
 import com.hunzz.relationserver.global.exception.custom.InvalidRelationException
 import com.hunzz.relationserver.global.utility.RedisKeyProvider
@@ -10,6 +12,7 @@ import java.util.*
 
 @Component
 class RelationRedisScriptHandler(
+    private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
@@ -96,13 +99,19 @@ class RelationRedisScriptHandler(
         val script = """
             local following_key = KEYS[1]
             local follower_key = KEYS[2]
+            local follow_queue_key = KEYS[3]
+            
             local user_id = ARGV[1]
             local target_id = ARGV[2]
             local current_time = tonumber(ARGV[3])
+            local follow_queue_data = ARGV[4]
             
             -- 팔로우
             redis.call('ZADD', following_key, current_time, target_id)
             redis.call('ZADD', follower_key, current_time, user_id)
+            
+            -- 팔로우 큐에 저장
+            redis.call('SADD', follow_queue_key, follow_queue_data)
             
             return nil
         """.trimIndent()
@@ -110,14 +119,17 @@ class RelationRedisScriptHandler(
         // redis keys
         val followingKey = redisKeyProvider.following(userId = userId)
         val followerKey = redisKeyProvider.follower(userId = targetId)
+        val followQueueKey = redisKeyProvider.followQueue()
 
         // execute script
         redisTemplate.execute(
-            RedisScript.of(script, String::class.java),
-            listOf(followingKey, followerKey),
-            userId.toString(),
-            targetId.toString(),
-            System.currentTimeMillis().toString()
+            RedisScript.of(script, String::class.java), // script
+            listOf(followingKey, followerKey, followQueueKey), // keys
+            userId.toString(), // argv[1]
+            targetId.toString(), // argv[2]
+            System.currentTimeMillis().toString(), // argv[3]
+            RelationId(userId = userId, targetId = targetId) // argv[4]
+                .let { objectMapper.writeValueAsString(it) }
         )
     }
 
@@ -125,12 +137,18 @@ class RelationRedisScriptHandler(
         val script = """
             local following_key = KEYS[1]
             local follower_key = KEYS[2]
+            local unfollow_queue_key = KEYS[3]
+            
             local user_id = ARGV[1]
             local target_id = ARGV[2]
+            local unfollow_queue_data = ARGV[3]
             
             -- 팔로우 취소
             redis.call('ZREM', following_key, target_id)
             redis.call('ZREM', follower_key, user_id)
+            
+            -- 언팔로우 큐에 저장
+            redis.call('SADD', unfollow_queue_key, unfollow_queue_data)
             
             return nil
         """.trimIndent()
@@ -138,13 +156,16 @@ class RelationRedisScriptHandler(
         // redis keys
         val followingKey = redisKeyProvider.following(userId = userId)
         val followerKey = redisKeyProvider.follower(userId = targetId)
+        val unfollowQueueKey = redisKeyProvider.unfollowQueue()
 
         // execute script
         redisTemplate.execute(
-            RedisScript.of(script, String::class.java),
-            listOf(followingKey, followerKey),
-            userId.toString(),
-            targetId.toString()
+            RedisScript.of(script, String::class.java), // script
+            listOf(followingKey, followerKey, unfollowQueueKey), // keys
+            userId.toString(), // ARGV[1]
+            targetId.toString(), // ARGV[2]
+            RelationId(userId = userId, targetId = targetId) // ARGV[3]
+                .let { objectMapper.writeValueAsString(it) }
         )
     }
 }
