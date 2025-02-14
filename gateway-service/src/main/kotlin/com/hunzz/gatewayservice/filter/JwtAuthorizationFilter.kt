@@ -31,20 +31,22 @@ class JwtAuthorizationFilter(
             val authHeader = request.headers.getFirst(AUTHORIZATION)
                 ?: throw JwtException(UNPACKED_ATK)
 
-            // substring
-            val atk = jwtProvider.substringToken(token = authHeader)
-                ?: throw JwtException(INVALID_TOKEN)
+            if (!authHeader.startsWith("Locust ")) {
+                // substring
+                val atk = jwtProvider.substringToken(token = authHeader)
+                    ?: throw JwtException(INVALID_TOKEN)
 
-            // validate
-            jwtProvider.validateToken(token = atk).onFailure {
-                throw JwtException(EXPIRED_ATK)
+                // validate
+                jwtProvider.validateToken(token = atk).onFailure {
+                    throw JwtException(EXPIRED_ATK)
+                }
+
+                // check atk blacklist
+                val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
+                val isBlocked = redisCommands.get(key = blockedAtkKey) != null
+
+                if (isBlocked) throw JwtException(EXPIRED_AUTH)
             }
-
-            // check atk blacklist
-            val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
-            val isBlocked = redisCommands.get(key = blockedAtkKey) != null
-
-            if (isBlocked) throw JwtException(EXPIRED_AUTH)
 
             chain.filter(exchange)
         }

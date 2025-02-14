@@ -26,7 +26,7 @@ class AuthRedisScriptHandler(
 ) {
     fun checkLoginRequest(inputEmail: String, inputPassword: String): UserAuth {
         // script
-        val loginValidationScript = """
+        val script = """
             local emails_key = KEYS[1]
             local banned_users_key = KEYS[2]
             local auth_key = KEYS[3]
@@ -58,38 +58,30 @@ class AuthRedisScriptHandler(
 
         // execute script
         val result = redisTemplate.execute(
-            RedisScript.of(loginValidationScript, String::class.java),
+            RedisScript.of(script, String::class.java),
             listOf(emailsKey, bannedUsersKey, authKey),
-            inputEmail,
+            inputEmail
         )
 
         // check result
-        when (result) {
-            INVALID_LOGIN_INFO.name -> {
-                throw InvalidUserInfoException(INVALID_LOGIN_INFO)
-            }
-
-            BANNED_USER_CANNOT_LOGIN.name -> {
-                throw InvalidAdminRequestException(BANNED_USER_CANNOT_LOGIN)
-            }
-
-            "NEEDS_REFRESH_AUTH_CACHE" -> {
-                return userAuthProvider.getUserAuthWithLocalCache(email = inputEmail)
-            }
+        return when (result) {
+            INVALID_LOGIN_INFO.name -> throw InvalidUserInfoException(INVALID_LOGIN_INFO)
+            BANNED_USER_CANNOT_LOGIN.name -> throw InvalidAdminRequestException(BANNED_USER_CANNOT_LOGIN)
+            "NEEDS_REFRESH_AUTH_CACHE" -> userAuthProvider.getUserAuthWithLocalCache(email = inputEmail)
 
             else -> {
                 val userAuth = objectMapper.readValue(result, UserAuth::class.java)
 
                 if (!passwordEncoder.matches(rawPassword = inputPassword, encodedPassword = userAuth.password))
                     throw InvalidUserInfoException(INVALID_LOGIN_INFO)
-                else return userAuth!!
+                else userAuth!!
             }
         }
     }
 
     fun logout(atk: String, email: String) {
         // script
-        val logoutScript = """
+        val script = """
             local blocked_atk_key = KEYS[1]
             local rtk_key = KEYS[2]
             local atk = ARGV[1]
@@ -110,7 +102,7 @@ class AuthRedisScriptHandler(
 
         // execute script
         redisTemplate.execute(
-            RedisScript.of(logoutScript, String::class.java),
+            RedisScript.of(script, String::class.java),
             listOf(blockedAtkKey, rtkKey),
             atk,
             expirationTimeOfAtk.toString()
@@ -119,7 +111,7 @@ class AuthRedisScriptHandler(
 
     fun checkRtk(email: String, rtkFromAuthHeader: String): UserAuth {
         // script
-        val checkRtkScript = """
+        val script = """
             local rtk_key = KEYS[1]
             local auth_key = KEYS[2]
             local rtk_user = ARGV[1]
@@ -145,26 +137,17 @@ class AuthRedisScriptHandler(
 
         // execute script
         val result = redisTemplate.execute(
-            RedisScript.of(checkRtkScript, String::class.java),
+            RedisScript.of(script, String::class.java),
             listOf(rtkKey, authKey),
             rtkFromAuthHeader
         )
 
-        println(result)
-
         // check result
         return when (result) {
-            INVALID_TOKEN.name -> {
-                throw InvalidUserInfoException(INVALID_TOKEN)
-            }
+            INVALID_TOKEN.name -> throw InvalidUserInfoException(INVALID_TOKEN)
+            "NEEDS_REFRESH_AUTH_CACHE" -> userAuthProvider.getUserAuthWithLocalCache(email = email)
 
-            "NEEDS_REFRESH_AUTH_CACHE" -> {
-                userAuthProvider.getUserAuthWithLocalCache(email = email)
-            }
-
-            else -> {
-                objectMapper.readValue(result, UserAuth::class.java)
-            }
+            else -> objectMapper.readValue(result, UserAuth::class.java)
         }
     }
 }

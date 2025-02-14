@@ -19,7 +19,7 @@ class UserRedisScriptHandler(
 ) {
     fun checkSignupRequest(inputEmail: String, inputAdminCode: String?) {
         // script
-        val signupValidationScript = """
+        val script = """
             local emails_key = KEYS[1]
             local admin_code_key = KEYS[2]
             local email = ARGV[1]
@@ -47,7 +47,7 @@ class UserRedisScriptHandler(
 
         // execute script
         val result = redisTemplate.execute(
-            RedisScript.of(signupValidationScript, String::class.java),
+            RedisScript.of(script, String::class.java),
             listOf(emailsKey, adminCodeKey),
             inputEmail,
             inputAdminCode ?: ""
@@ -55,19 +55,14 @@ class UserRedisScriptHandler(
 
         // check result
         when (result) {
-            DUPLICATED_EMAIL.name -> {
-                throw InvalidUserInfoException(DUPLICATED_EMAIL)
-            }
-
-            INVALID_ADMIN_CODE.name -> {
-                throw InvalidAdminRequestException(INVALID_ADMIN_CODE)
-            }
+            DUPLICATED_EMAIL.name -> throw InvalidUserInfoException(DUPLICATED_EMAIL)
+            INVALID_ADMIN_CODE.name -> throw InvalidAdminRequestException(INVALID_ADMIN_CODE)
         }
     }
 
     fun signup(userAuth: UserAuth) {
         // script
-        val signupScript = """
+        val script = """
             local emails_key = KEYS[1]
             local ids_key = KEYS[2]
             local authKey = KEYS[3]
@@ -92,7 +87,7 @@ class UserRedisScriptHandler(
 
         // execute script
         redisTemplate.execute(
-            RedisScript.of(signupScript, String::class.java),
+            RedisScript.of(script, String::class.java),
             listOf(emailsKey, idsKey, authKey),
             userAuth.email,
             userAuth.userId.toString(),
