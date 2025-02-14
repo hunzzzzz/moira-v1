@@ -18,6 +18,7 @@ enum class ErrorCode(val message: String) {
     // auth
     INVALID_LOGIN_INFO("이메일 혹은 비밀번호가 잘못되었습니다. 다시 확인해주세요."),
     BANNED_USER_CANNOT_LOGIN("계정이 정지되어 로그인이 불가능합니다."),
+    INVALID_TOKEN("유효하지 않은 JWT 토큰입니다."),
 
     // admin
     INVALID_ADMIN_CODE("잘못된 어드민 가입 코드입니다.")

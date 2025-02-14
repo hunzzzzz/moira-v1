@@ -26,7 +26,7 @@ spring:
         - id: auth-server
           uri: lb://AUTH-SERVER
           predicates:
-            - Path=/auth-server/actuator/**, /auth-server/login/**,
+            - Path=/auth-server/actuator/**, /auth-server/login/**, /auth-server/refresh/**
           filters:
             - RewritePath=/auth-server/(?<segment>.*), /$\{segment}
         # auth server

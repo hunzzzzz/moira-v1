@@ -2,8 +2,7 @@ package com.hunzz.authserver.domain.auth.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.common.domain.user.model.UserAuth
-import com.hunzz.common.global.exception.ErrorCode.BANNED_USER_CANNOT_LOGIN
-import com.hunzz.common.global.exception.ErrorCode.INVALID_LOGIN_INFO
+import com.hunzz.common.global.exception.ErrorCode.*
 import com.hunzz.common.global.exception.custom.InvalidAdminRequestException
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
 import com.hunzz.common.global.utility.PasswordEncoder
@@ -98,6 +97,7 @@ class AuthRedisScriptHandler(
             
             -- 로그아웃 유저의 ATK 차단
             redis.call('SET', blocked_atk_key, atk, 'PX', atk_exp_time)
+            
             -- RTK 삭제
             redis.call('DEL', rtk_key)
             
@@ -115,5 +115,56 @@ class AuthRedisScriptHandler(
             atk,
             expirationTimeOfAtk.toString()
         )
+    }
+
+    fun checkRtk(email: String, rtkFromAuthHeader: String): UserAuth {
+        // script
+        val checkRtkScript = """
+            local rtk_key = KEYS[1]
+            local auth_key = KEYS[2]
+            local rtk_user = ARGV[1]
+            
+            -- RTK 검증
+            local rtk_redis = redis.call('GET', rtk_key)
+            if rtk_user ~= rtk_redis then
+                return 'INVALID_TOKEN'
+            end
+            
+            -- 유저 인증 정보 가져오기
+            local user_auth = redis.call('GET', auth_key)
+            if not user_auth then
+                return 'NEEDS_REFRESH_AUTH_CACHE'
+            end
+            
+            return user_auth
+        """.trimIndent()
+
+        // redis keys
+        val rtkKey = redisKeyProvider.rtk(email = email)
+        val authKey = redisKeyProvider.auth(email = email)
+
+        // execute script
+        val result = redisTemplate.execute(
+            RedisScript.of(checkRtkScript, String::class.java),
+            listOf(rtkKey, authKey),
+            rtkFromAuthHeader
+        )
+
+        println(result)
+
+        // check result
+        return when (result) {
+            INVALID_TOKEN.name -> {
+                throw InvalidUserInfoException(INVALID_TOKEN)
+            }
+
+            "NEEDS_REFRESH_AUTH_CACHE" -> {
+                userAuthProvider.getUserAuthWithLocalCache(email = email)
+            }
+
+            else -> {
+                objectMapper.readValue(result, UserAuth::class.java)
+            }
+        }
     }
 }

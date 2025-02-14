@@ -14,8 +14,8 @@ class AuthRedisCommandSender(
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
-    @KafkaListener(topics = ["login"], groupId = "auth-server")
-    fun login(message: String) {
+    @KafkaListener(topics = ["set-rtk"], groupId = "auth-server")
+    fun setRtk(message: String) {
         val data = objectMapper.readValue(message, object : TypeReference<Map<String, Any>>() {})
         val email = data["email"] as String
         val rtk = data["rtk"] as String
