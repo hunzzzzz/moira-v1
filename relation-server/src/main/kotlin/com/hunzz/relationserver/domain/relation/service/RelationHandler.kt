@@ -16,8 +16,7 @@ class RelationHandler(
     @Transactional
     fun follow(userId: UUID, targetId: UUID) {
         // validate
-        if (userId == targetId)
-            throw InvalidRelationException(CANNOT_FOLLOW_ITSELF)
+        if (userId == targetId) throw InvalidRelationException(CANNOT_FOLLOW_ITSELF)
 
         relationRedisScriptHandler.checkFollowRequest(userId = userId, targetId = targetId)
 
@@ -28,8 +27,7 @@ class RelationHandler(
     @Transactional
     fun unfollow(userId: UUID, targetId: UUID) {
         // validate
-        if (userId == targetId)
-            throw InvalidRelationException(CANNOT_UNFOLLOW_ITSELF)
+        if (userId == targetId) throw InvalidRelationException(CANNOT_UNFOLLOW_ITSELF)
 
         relationRedisScriptHandler.checkUnfollowRequest(userId = userId, targetId = targetId)
 
