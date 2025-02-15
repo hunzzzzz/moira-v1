@@ -1,6 +1,5 @@
 package com.hunzz.relationserver.domain.relation.service
 
-import com.hunzz.relationserver.domain.relation.repository.RelationRepository
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -11,8 +10,7 @@ import java.util.*
 @Component
 class RelationScheduler(
     private val jdbcTemplate: JdbcTemplate,
-    private val relationRedisScriptHandler: RelationRedisScriptHandler,
-    private val relationRepository: RelationRepository
+    private val relationRedisScriptHandler: RelationRedisScriptHandler
 ) {
     private fun UUID.toBytes(): ByteArray {
         val byteBuffer = ByteBuffer.allocate(16)
@@ -42,9 +40,16 @@ class RelationScheduler(
 
     @Scheduled(fixedRate = 1000 * 10)
     fun checkUnfollowQueue() {
+        // get relation ids
         val relationIds = relationRedisScriptHandler.checkUnfollowQueue()
+        if (relationIds.isEmpty()) return
 
-        // delete 'relations' in db
-        relationRepository.deleteAllById(relationIds)
+        // batch delete (with jdbc template)
+        val sql = "DELETE FROM relations WHERE user_id = ? AND target_id = ?"
+
+        jdbcTemplate.batchUpdate(sql, relationIds, 1000) { ps, relationId ->
+            ps.setBytes(1, relationId.userId.toBytes())
+            ps.setBytes(2, relationId.targetId.toBytes())
+        }
     }
 }
