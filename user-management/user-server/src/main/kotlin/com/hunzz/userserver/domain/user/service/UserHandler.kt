@@ -79,12 +79,12 @@ class UserHandler(
         return CachedUser(userId = userId, status = user.status, name = user.name, imageUrl = user.imageUrl)
     }
 
-    @Cacheable(cacheNames = ["user"], cacheManager = "redisCacheManager")
+    @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "redisCacheManager")
     fun getWithRedisCache(userId: UUID): CachedUser {
         return get(userId = userId)
     }
 
-    @Cacheable(cacheNames = ["user"], cacheManager = "localCacheManager")
+    @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")
     fun getWithLocalCache(userId: UUID): CachedUser {
         return getWithRedisCache(userId = userId)
     }

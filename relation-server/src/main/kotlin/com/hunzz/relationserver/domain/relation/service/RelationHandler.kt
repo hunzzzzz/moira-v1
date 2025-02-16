@@ -26,7 +26,10 @@ class RelationHandler(
 
         relationRedisScriptHandler.checkFollowRequest(userId = userId, targetId = targetId)
 
-        // send kafka message (redis command)
+        // save relation info in redis
+        relationRedisScriptHandler.follow(userId = userId, targetId = targetId)
+
+        // send kafka message (to user-server)
         kafkaProducer.send("follow", mapOf("userId" to userId, "targetId" to targetId))
     }
 
@@ -37,8 +40,8 @@ class RelationHandler(
 
         relationRedisScriptHandler.checkUnfollowRequest(userId = userId, targetId = targetId)
 
-        // send kafka message (redis command)
-        kafkaProducer.send("unfollow", mapOf("userId" to userId, "targetId" to targetId))
+        // delete relation info from redis
+        relationRedisScriptHandler.unfollow(userId = userId, targetId = targetId)
     }
 
     fun getRelations(userId: UUID, cursor: UUID?, type: RelationType): List<FollowResponse> {

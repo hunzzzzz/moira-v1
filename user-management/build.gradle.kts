@@ -47,6 +47,7 @@ subprojects {
         runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jwtVersion")}")
         // kotlin
         implementation("org.jetbrains.kotlin:kotlin-reflect")
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
         // redis
         implementation("org.springframework.boot:spring-boot-starter-data-redis")
         // springboot

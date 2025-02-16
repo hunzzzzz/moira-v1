@@ -1,10 +1,14 @@
 package com.hunzz.relationserver.global.config
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.PropertyAccessor
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
 @Configuration
@@ -17,6 +21,9 @@ class RedisConfig(
 ) {
     fun redisConnectionFactory(): LettuceConnectionFactory {
         val lettuceConnectionFactory = LettuceConnectionFactory(host, port)
+
+        lettuceConnectionFactory.start()
+
         return lettuceConnectionFactory
     }
 
@@ -24,12 +31,17 @@ class RedisConfig(
     fun redisTemplate() = RedisTemplate<String, Any>().apply {
         connectionFactory = redisConnectionFactory()
 
+        // key serializer
         keySerializer = StringRedisSerializer()
-        valueSerializer = StringRedisSerializer()
-
         hashKeySerializer = StringRedisSerializer()
-        hashValueSerializer = StringRedisSerializer()
 
-        setDefaultSerializer(StringRedisSerializer())
+        // exclude 'class info' from data
+        val objectMapper = ObjectMapper().apply {
+            setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+        }
+
+        // value serializer
+        valueSerializer = GenericJackson2JsonRedisSerializer(objectMapper)
+        hashValueSerializer = GenericJackson2JsonRedisSerializer(objectMapper)
     }
 }
