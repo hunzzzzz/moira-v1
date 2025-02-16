@@ -18,7 +18,6 @@ class UserPrivateController(
     fun getFollowInfo(
         @PathVariable userId: UUID
     ): ResponseEntity<CachedUser> {
-        println("들어오나")
         val body = userHandler.getWithLocalCache(userId = userId)
 
         return ResponseEntity.ok(body)
