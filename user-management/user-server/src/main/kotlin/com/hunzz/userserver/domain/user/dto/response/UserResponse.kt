@@ -6,7 +6,6 @@ import java.util.*
 data class UserResponse(
     val id: UUID,
     val status: UserStatus,
-    val email: String,
     val name: String,
     val imageUrl: String?,
     val isMyProfile: Boolean,

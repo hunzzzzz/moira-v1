@@ -21,7 +21,7 @@ class UserController(
         @AuthPrincipal userAuth: UserAuth,
         @PathVariable targetId: UUID
     ): ResponseEntity<UserResponse> {
-        val body = userHandler.get(userId = userAuth.userId, targetId = targetId)
+        val body = userHandler.getProfile(userId = userAuth.userId, targetId = targetId)
 
         return ResponseEntity.ok(body)
     }

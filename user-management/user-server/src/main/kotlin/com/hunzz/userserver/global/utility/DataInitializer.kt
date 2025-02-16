@@ -39,7 +39,7 @@ class DataInitializer(
             redisTemplate.opsForValue().set(adminCodeKey, "admin_code")
 
             // signup 1000 users
-//            add1000Users()
+            add1000Users()
         }
     }
 }

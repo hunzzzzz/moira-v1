@@ -1,5 +1,6 @@
 package com.hunzz.userserver.domain.user.service
 
+import com.hunzz.common.domain.user.model.CachedUser
 import com.hunzz.common.domain.user.model.User
 import com.hunzz.common.domain.user.model.UserRole
 import com.hunzz.common.domain.user.repository.UserRepository
@@ -59,31 +60,32 @@ class UserHandler(
         return user.id!!
     }
 
-    fun get(userId: UUID, targetId: UUID): UserResponse {
+    fun getProfile(userId: UUID, targetId: UUID): UserResponse {
         val user = proxy().getWithLocalCache(userId = targetId)
 
         return UserResponse(
-            id = user.id!!,
+            id = user.userId,
             status = user.status,
-            email = user.email,
             name = user.name,
             imageUrl = user.imageUrl,
             isMyProfile = userId == targetId
         )
     }
 
-    fun get(userId: UUID): User {
-        return userRepository.findByIdOrNull(id = userId)
+    fun get(userId: UUID): CachedUser {
+        val user = userRepository.findByIdOrNull(id = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
+
+        return CachedUser(userId = userId, status = user.status, name = user.name, imageUrl = user.imageUrl)
     }
 
     @Cacheable(cacheNames = ["user"], cacheManager = "redisCacheManager")
-    fun getWithRedisCache(userId: UUID): User {
+    fun getWithRedisCache(userId: UUID): CachedUser {
         return get(userId = userId)
     }
 
     @Cacheable(cacheNames = ["user"], cacheManager = "localCacheManager")
-    fun getWithLocalCache(userId: UUID): User {
+    fun getWithLocalCache(userId: UUID): CachedUser {
         return getWithRedisCache(userId = userId)
     }
 }
