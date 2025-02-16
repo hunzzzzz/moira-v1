@@ -1,0 +1,37 @@
+server:
+  port: 8888
+
+spring:
+  # get config properties from .env file
+  config:
+    import: optional:file:.env[.properties]
+  # application name
+  application:
+    name: config-server
+  # kafka-bus
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER_URL}
+  cloud:
+    bus:
+      destination: config-change
+      enabled: true
+      refresh:
+        enabled: true
+      env:
+        enabled: true
+  # config-server
+    config:
+      server:
+        git:
+          uri: ${CONFIG_SERVER_GIT_URL}
+          username: ${CONFIG_SERVER_GIT_USERNAME}
+          password: ${CONFIG_SERVER_GIT_PASSWORD}
+          default-label: main
+          search-paths:
+            - 'database'
+            - 'encrypt'
+            - 'eureka'
+            - 'jwt'
+            - 'messaging'
+            - 'monitoring'
+            - 'redis'

@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    gateway:
+      routes:
+        # user server (without auth)
+        - id: user-server
+          uri: lb://USER-SERVER
+          predicates:
+            - Path=/user-server/actuator/**, /user-server/signup/**,
+          filters:
+            - RewritePath=/user-server/(?<segment>.*), /$\{segment}
+        # user server
+        - id: user-server
+          uri: lb://USER-SERVER
+          predicates:
+            - Path=/user-server/users/**
+          filters:
+            - RewritePath=/user-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
+        # auth server (without auth)
+        - id: auth-server
+          uri: lb://AUTH-SERVER
+          predicates:
+            - Path=/auth-server/actuator/**, /auth-server/login/**, /auth-server/refresh/**
+          filters:
+            - RewritePath=/auth-server/(?<segment>.*), /$\{segment}
+        # auth server
+        - id: auth-server
+          uri: lb://AUTH-SERVER
+          predicates:
+            - Path=/auth-server/logout/**
+          filters:
+            - RewritePath=/auth-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
+        # relation server
+        - id: relation-server
+          uri: lb://RELATION-SERVER
+          predicates:
+            - Path=/relation-server/users/**
+          filters:
+            - RewritePath=/relation-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
