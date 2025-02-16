@@ -5,7 +5,7 @@ import com.hunzz.relationserver.domain.relation.dto.response.FollowResponse
 import com.hunzz.relationserver.domain.relation.model.Relation
 import com.hunzz.relationserver.domain.relation.model.RelationId
 import com.hunzz.relationserver.domain.relation.model.RelationType
-import com.hunzz.relationserver.global.client.UserServiceClient
+import com.hunzz.relationserver.global.client.UserServerClient
 import com.hunzz.relationserver.global.exception.ErrorCode.*
 import com.hunzz.relationserver.global.exception.custom.InvalidRelationException
 import com.hunzz.relationserver.global.utility.RedisKeyProvider
@@ -23,7 +23,7 @@ class RelationRedisScriptHandler(
     private val redisKeyProvider: RedisKeyProvider,
     private val redisScriptProvider: RedisScriptProvider,
     private val redisTemplate: RedisTemplate<String, String>,
-    private val userServiceClient: UserServiceClient
+    private val userServerClient: UserServerClient
 ) {
     fun checkFollowRequest(userId: UUID, targetId: UUID) {
         // settings
@@ -165,7 +165,7 @@ class RelationRedisScriptHandler(
             if (json.startsWith("NULL")) {
                 val id = UUID.fromString(json.substring(5))
 
-                userServiceClient.getFollowInfo(userId = id)
+                userServerClient.getFollowInfo(userId = id)
             } else objectMapper.readValue(json, FollowResponse::class.java)
         }
 

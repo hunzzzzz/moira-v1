@@ -28,9 +28,6 @@ class RelationHandler(
 
         // save relation info in redis
         relationRedisScriptHandler.follow(userId = userId, targetId = targetId)
-
-        // send kafka message (to user-server)
-        kafkaProducer.send("follow", mapOf("userId" to userId, "targetId" to targetId))
     }
 
     @Transactional

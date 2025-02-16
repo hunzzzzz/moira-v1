@@ -11,7 +11,7 @@ class UserRedisCommandSender(
     private val objectMapper: ObjectMapper,
     private val userRedisScriptHandler: UserRedisScriptHandler
 ) {
-    @KafkaListener(topics = ["signup"], groupId = "user-server")
+    @KafkaListener(topics = ["signup"], groupId = "user-server-signup")
     fun signup(message: String) {
         val user = objectMapper.readValue(message, User::class.java)
         val userAuth = UserAuth(
