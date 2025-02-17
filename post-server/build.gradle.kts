@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.hunzz"
-version = "2.0.0"
+version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
@@ -19,20 +19,16 @@ repositories {
     mavenCentral()
 }
 
-extra["jwtVersion"] = "0.12.6"
 extra["springCloudVersion"] = "2024.0.0"
 
 dependencies {
     // database
     runtimeOnly("com.mysql:mysql-connector-j")
-    // jwt
-    implementation("io.jsonwebtoken:jjwt-api:${property("jwtVersion")}")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jwtVersion")}")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jwtVersion")}")
-    // kotlin
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // kotlin
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
     // springboot
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
