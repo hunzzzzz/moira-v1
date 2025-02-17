@@ -16,7 +16,6 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import kotlin.collections.HashMap
 
 @Component
 class UserHandler(
@@ -62,12 +61,15 @@ class UserHandler(
 
     fun getProfile(userId: UUID, targetId: UUID): UserResponse {
         val user = proxy().getWithLocalCache(userId = targetId)
+        val userRedisInfo = userRedisHandler.getUserRedisInfo(userId = targetId)
 
         return UserResponse(
             id = user.userId,
             status = user.status,
             name = user.name,
             imageUrl = user.imageUrl,
+            numOfFollowings = userRedisInfo.numOfFollowings,
+            numOfFollowers = userRedisInfo.numOfFollowers,
             isMyProfile = userId == targetId
         )
     }

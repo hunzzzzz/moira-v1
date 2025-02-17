@@ -8,5 +8,7 @@ data class UserResponse(
     val status: UserStatus,
     val name: String,
     val imageUrl: String?,
+    val numOfFollowings: Long,
+    val numOfFollowers: Long,
     val isMyProfile: Boolean,
 )

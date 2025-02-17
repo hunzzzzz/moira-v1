@@ -8,6 +8,7 @@ import com.hunzz.common.global.exception.ErrorCode.INVALID_ADMIN_CODE
 import com.hunzz.common.global.exception.custom.InvalidAdminRequestException
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
 import com.hunzz.common.global.utility.RedisKeyProvider
+import com.hunzz.userserver.domain.user.dto.response.UserRedisResponse
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
@@ -113,6 +114,31 @@ class UserRedisHandler(
             objectMapper.writeValueAsString(cachedUser),
             3,
             TimeUnit.DAYS
+        )
+    }
+
+    fun getUserRedisInfo(userId: UUID): UserRedisResponse {
+        val followingKey = redisKeyProvider.following(userId = userId)
+        val followerKey = redisKeyProvider.follower(userId = userId)
+
+        val script = """
+            local following_key = KEYS[1]
+            local follower_key = KEYS[2]
+            
+            local num_of_followings = redis.call('ZCARD', following_key)
+            local num_of_followers = redis.call('ZCARD', follower_key)
+            
+            return {num_of_followings, num_of_followers}
+        """.trimIndent()
+
+        val result = redisTemplate.execute(
+            RedisScript.of(script, List::class.java), // script
+            listOf(followingKey, followerKey), // keys
+        )
+
+        return UserRedisResponse(
+            numOfFollowings = (result[0] as Long?) ?: 0L,
+            numOfFollowers = (result[1] as Long?) ?: 0L
         )
     }
 }
