@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthRedisCommandSender(
-    private val authRedisScriptHandler: AuthRedisScriptHandler,
+    private val authRedisHandler: AuthRedisHandler,
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
@@ -30,6 +30,6 @@ class AuthRedisCommandSender(
         val email = data["email"] as String
         val atk = data["atk"] as String
 
-        authRedisScriptHandler.logout(atk = atk, email = email)
+        authRedisHandler.logout(atk = atk, email = email)
     }
 }

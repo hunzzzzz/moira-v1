@@ -13,7 +13,6 @@ import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
 import com.hunzz.userserver.domain.user.dto.response.UserResponse
 import org.springframework.aop.framework.AopContext
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -73,7 +72,7 @@ class UserHandler(
     }
 
     fun get(userId: UUID): CachedUser {
-        val user = userRepository.findByIdOrNull(id = userId)
+        val user = userRepository.findUserProfile(userId = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
         return CachedUser(userId = userId, status = user.status, name = user.name, imageUrl = user.imageUrl)

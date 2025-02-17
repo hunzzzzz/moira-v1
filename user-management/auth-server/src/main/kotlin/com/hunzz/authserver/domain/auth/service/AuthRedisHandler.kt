@@ -14,7 +14,7 @@ import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
 
 @Component
-class AuthRedisScriptHandler(
+class AuthRedisHandler(
     @Value("\${jwt.expiration-time.atk}")
     private val expirationTimeOfAtk: Long,
 
