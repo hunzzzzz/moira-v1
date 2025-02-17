@@ -5,5 +5,5 @@ import java.util.*
 data class FollowSliceResponse(
     val currentCursor: UUID?,
     val nextCursor: UUID?,
-    val contents: List<FollowResponse>
+    val contents: List<FollowResponse?>
 )

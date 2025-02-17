@@ -10,7 +10,7 @@ class Test(FastHttpUser):
 
     @task
     def first_page(self):
-        my_id = "ef9ab91a-4b19-4fd1-9e77-4ac90727ae1b"
+        my_id = "c7f045f3-ebaf-4a2a-9149-ec26d628abff"
         locust_authorization = f"Locust {my_id}"
         cursor = ""
 

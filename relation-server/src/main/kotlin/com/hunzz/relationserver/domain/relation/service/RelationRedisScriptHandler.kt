@@ -141,33 +141,59 @@ class RelationRedisScriptHandler(
         return relationIds
     }
 
-    fun getRelations(userId: UUID, cursor: UUID?, type: RelationType, pageSize: Long): List<FollowResponse> {
+    fun getRelations(userId: UUID, cursor: UUID?, type: RelationType, pageSize: Long): List<FollowResponse?> {
+        // settings
         val script = redisScriptProvider.relations()
-
         val key = when (type) {
             RelationType.FOLLOWING -> redisKeyProvider.following(userId = userId)
             RelationType.FOLLOWER -> redisKeyProvider.follower(userId = userId)
         }
 
-        val result = redisTemplate.execute(
-            RedisScript.of(script, List::class.java), // script
-            listOf(key), // keys
-            cursor?.toString() ?: "", // argv[1]
-            pageSize.toString(), // argv[2]
-            LocalDateTime.now().atZone(ZoneId.systemDefault())
-                .toInstant().toEpochMilli().toDouble().toString() // argv[3]
-        )
+        var retryCount = 0
+        val maxRetries = 3
 
-        val followResponses = result.map {
-            val json = it as String
+        var result: List<*> = listOf<Any>()
+        var missingInfos = hashMapOf<UUID, FollowResponse>()
 
-            // if there's no cache in redis, get follow info from user-server
-            if (json.startsWith("NULL")) {
-                val id = UUID.fromString(json.substring(5))
+        // retry (if connection error occurs)
+        while (retryCount < maxRetries) {
+            try {
+                // execute script
+                result = redisTemplate.execute(
+                    RedisScript.of(script, List::class.java), // script
+                    listOf(key), // keys
+                    cursor?.toString() ?: "", // argv[1]
+                    pageSize.toString(), // argv[2]
+                    LocalDateTime.now().atZone(ZoneId.systemDefault())
+                        .toInstant().toEpochMilli().toDouble().toString() // argv[3]
+                )
 
-                userServerClient.getFollowInfo(userId = id)
-            } else objectMapper.readValue(json, FollowResponse::class.java)
+                // if there's no cache in redis, get follow info from user-server
+                val missingIds = result.filterIsInstance<String>()
+                    .filter { it.startsWith("NULL:") }
+                    .map { UUID.fromString(it.substring(5)) }
+
+                if (missingIds.isNotEmpty())
+                    missingInfos = userServerClient.getUsers(missingIds = missingIds)
+
+                break
+            } catch (e: Exception) {
+                retryCount++
+                if (retryCount == maxRetries) throw e
+
+                Thread.sleep(1000)
+            }
         }
+
+        // return result
+        val followResponses = result.filterIsInstance<String>()
+            .map {
+                if (it.startsWith("NULL:")) {
+                    val id = UUID.fromString(it.substring(5))
+
+                    missingInfos[id]
+                } else objectMapper.readValue(it, FollowResponse::class.java)
+            }
 
         return followResponses
     }

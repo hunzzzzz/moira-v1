@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import kotlin.collections.HashMap
 
 @Component
 class UserHandler(
@@ -92,5 +93,15 @@ class UserHandler(
     @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")
     fun getWithLocalCache(userId: UUID): CachedUser {
         return getWithRedisCache(userId = userId)
+    }
+
+    fun getAll(missingIds: List<UUID>): HashMap<UUID, CachedUser> {
+        val hashMap = hashMapOf<UUID, CachedUser>()
+
+        missingIds.forEach {
+            hashMap[it] = proxy().getWithLocalCache(userId = it)
+        }
+
+        return hashMap
     }
 }

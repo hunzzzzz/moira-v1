@@ -30,7 +30,7 @@ class DataInitializer(
 
         if (ddlAuto == "create" && profile != "test") {
             // follow 1000 users
-            val myId = UUID.fromString("ef9ab91a-4b19-4fd1-9e77-4ac90727ae1b")
+            val myId = UUID.fromString("c7f045f3-ebaf-4a2a-9149-ec26d628abff")
             follow1000Users(myId = myId)
         }
     }
