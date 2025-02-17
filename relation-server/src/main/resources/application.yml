@@ -4,12 +4,3 @@ server:
 spring:
   application:
     name: relation-server
-
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000   # 연결 타임아웃 (ms)
-        readTimeout: 5000      # 읽기 타임아웃 (ms)
-        maxConnections: 500    # 최대 연결 수
-        maxConnectionsPerRoute: 100 # 경로당 최대 연결 수
