@@ -22,7 +22,7 @@ import java.util.*
 class UserHandler(
     private val kafkaProducer: KafkaProducer,
     private val passwordEncoder: PasswordEncoder,
-    private val userRedisScriptHandler: UserRedisScriptHandler,
+    private val userRedisHandler: UserRedisHandler,
     private val userRepository: UserRepository
 ) {
     private fun proxy() = AopContext.currentProxy() as UserHandler
@@ -37,7 +37,7 @@ class UserHandler(
     fun save(request: SignUpRequest): UUID {
         // validate
         isEqualPasswords(password1 = request.password!!, password2 = request.password2!!)
-        userRedisScriptHandler.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
+        userRedisHandler.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
 
         // encrypt
         val encodedPassword = passwordEncoder.encodePassword(rawPassword = request.password!!)
@@ -79,9 +79,15 @@ class UserHandler(
         return CachedUser(userId = userId, status = user.status, name = user.name, imageUrl = user.imageUrl)
     }
 
-    @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "redisCacheManager")
     fun getWithRedisCache(userId: UUID): CachedUser {
-        return get(userId = userId)
+        val userCache = userRedisHandler.getUserCache(userId = userId)
+
+        return if (userCache == null) {
+            val cachedUser = get(userId = userId)
+            userRedisHandler.setUserCache(userId = userId, cachedUser = cachedUser)
+
+            cachedUser
+        } else userCache
     }
 
     @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")

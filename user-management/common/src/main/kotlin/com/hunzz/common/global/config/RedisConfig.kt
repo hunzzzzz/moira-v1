@@ -1,8 +1,5 @@
 package com.hunzz.common.global.config
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.PropertyAccessor
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,11 +24,9 @@ class RedisConfig(
     private val port: Int
 ) {
     fun redisConnectionFactory(): LettuceConnectionFactory {
-        val lettuceConnectionFactory = LettuceConnectionFactory(host, port)
-
-        lettuceConnectionFactory.start()
-
-        return lettuceConnectionFactory
+        return LettuceConnectionFactory(host, port).apply {
+            afterPropertiesSet()
+        }
     }
 
     @Bean
@@ -42,25 +37,16 @@ class RedisConfig(
         keySerializer = StringRedisSerializer()
         hashKeySerializer = StringRedisSerializer()
 
-        // exclude 'class info' from data
-        val objectMapper = ObjectMapper().apply {
-            setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-        }
-
         // value serializer
-        valueSerializer = GenericJackson2JsonRedisSerializer(objectMapper)
-        hashValueSerializer = GenericJackson2JsonRedisSerializer(objectMapper)
+        valueSerializer = GenericJackson2JsonRedisSerializer()
+        hashValueSerializer = GenericJackson2JsonRedisSerializer()
     }
 
     private fun getDefaultConfiguration(): RedisCacheConfiguration {
-        val objectMapper = ObjectMapper().apply {
-            setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-        }
-
         return defaultCacheConfig()
             .serializeKeysWith(fromSerializer(StringRedisSerializer()))
-            .serializeValuesWith(fromSerializer(GenericJackson2JsonRedisSerializer(objectMapper)))
-            .entryTtl(Duration.ofDays(1))
+            .serializeValuesWith(fromSerializer(GenericJackson2JsonRedisSerializer()))
+            .entryTtl(Duration.ofDays(3))
     }
 
     @Bean

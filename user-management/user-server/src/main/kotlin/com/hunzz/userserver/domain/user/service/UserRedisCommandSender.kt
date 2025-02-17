@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class UserRedisCommandSender(
     private val objectMapper: ObjectMapper,
-    private val userRedisScriptHandler: UserRedisScriptHandler
+    private val userRedisHandler: UserRedisHandler
 ) {
     @KafkaListener(topics = ["signup"], groupId = "user-server-signup")
     fun signup(message: String) {
@@ -21,6 +21,6 @@ class UserRedisCommandSender(
             password = user.password
         )
 
-        userRedisScriptHandler.signup(userAuth = userAuth)
+        userRedisHandler.signup(userAuth = userAuth)
     }
 }

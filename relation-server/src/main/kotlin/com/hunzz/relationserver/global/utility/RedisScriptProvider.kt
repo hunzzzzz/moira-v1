@@ -113,7 +113,7 @@ class RedisScriptProvider {
             local user_ids
             
             -- 커서 기반 페이징 처리
-            if cursor == "" then
+            if cursor == "" or cursor == nil then
                 user_ids = redis.call('ZREVRANGEBYSCORE', key, current_time, '-inf', 'LIMIT', 0, page_size)
             else 
                 local cursor_score = redis.call('ZSCORE', key, cursor)
@@ -125,7 +125,7 @@ class RedisScriptProvider {
             for i, user_id in ipairs(user_ids) do
                 local follow_info_key = 'user:' .. user_id
                 local follow_info = redis.call('GET', follow_info_key)
-                if follow_info == nil then
+                if follow_info == false then
                     result[i] = 'NULL:' .. user_id
                 else
                     result[i] = follow_info

@@ -7,4 +7,6 @@ data class CachedUser(
     val status: UserStatus,
     val name: String,
     val imageUrl: String?
-)
+) {
+    constructor() : this(UUID.randomUUID(), UserStatus.NORMAL, "", null)
+}

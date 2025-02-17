@@ -1,6 +1,7 @@
 package com.hunzz.userserver.domain.user.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.hunzz.common.domain.user.model.CachedUser
 import com.hunzz.common.domain.user.model.UserAuth
 import com.hunzz.common.global.exception.ErrorCode.DUPLICATED_EMAIL
 import com.hunzz.common.global.exception.ErrorCode.INVALID_ADMIN_CODE
@@ -10,9 +11,11 @@ import com.hunzz.common.global.utility.RedisKeyProvider
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Component
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Component
-class UserRedisScriptHandler(
+class UserRedisHandler(
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
@@ -92,6 +95,24 @@ class UserRedisScriptHandler(
             userAuth.email,
             userAuth.userId.toString(),
             objectMapper.writeValueAsString(userAuth)
+        )
+    }
+
+    fun getUserCache(userId: UUID): CachedUser? {
+        val userCacheKey = redisKeyProvider.user(userId = userId)
+
+        return redisTemplate.opsForValue().get(userCacheKey)
+            ?.let { objectMapper.readValue(it, CachedUser::class.java) }
+    }
+
+    fun setUserCache(userId: UUID, cachedUser: CachedUser) {
+        val userCacheKey = redisKeyProvider.user(userId = userId)
+
+        redisTemplate.opsForValue().set(
+            userCacheKey,
+            objectMapper.writeValueAsString(cachedUser),
+            3,
+            TimeUnit.DAYS
         )
     }
 }

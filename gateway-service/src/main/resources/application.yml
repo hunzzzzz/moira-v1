@@ -11,7 +11,7 @@ spring:
         - id: user-server
           uri: lb://USER-SERVER
           predicates:
-            - Path=/user-server/actuator/**, /user-server/signup/**,
+            - Path=/user-server/actuator/**, /user-server/signup/**, /user-server/private/**
           filters:
             - RewritePath=/user-server/(?<segment>.*), /$\{segment}
         # user server

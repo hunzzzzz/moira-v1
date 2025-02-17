@@ -9,4 +9,4 @@ spring:
   cloud:
     config:
       uri: ${CONFIG_SERVER_URL}
-      name: eureka-client, kafka-bus, actuator, mysql-create, redis, encrypt, jwt
+      name: eureka-client, kafka-bus, actuator, mysql-update, redis, encrypt, jwt
