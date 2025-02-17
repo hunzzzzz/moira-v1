@@ -11,27 +11,25 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Component
-class RelationRedisCommandSender(
+class RelationKafkaConsumer(
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>,
     private val userHandler: UserHandler
 ) {
-    @KafkaListener(topics = ["follow"], groupId = "user-server")
+    @KafkaListener(topics = ["follow"], groupId = "user-server-follow")
     fun follow(message: String) {
-        val data = objectMapper.readValue(message, object : TypeReference<Map<String, Any>>() {})
-        val userId = UUID.fromString(data["userId"] as String)
-        val targetId = UUID.fromString(data["targetId"] as String)
+        val data = objectMapper.readValue(message, object : TypeReference<List<UUID>>() {})
 
         // add user cache into redis
-        listOf(userId, targetId).forEach {
+        data.forEach {
             val followInfoKey = redisKeyProvider.user(userId = it)
             val followResponse = userHandler.getWithLocalCache(userId = it)
 
             redisTemplate.opsForValue().set(
                 followInfoKey,
                 objectMapper.writeValueAsString(followResponse),
-                1,
+                3,
                 TimeUnit.DAYS
             )
         }

@@ -1,6 +1,6 @@
 package com.hunzz.relationserver.domain.relation.controller
 
-import com.hunzz.relationserver.domain.relation.dto.response.FollowResponse
+import com.hunzz.relationserver.domain.relation.dto.response.FollowSliceResponse
 import com.hunzz.relationserver.domain.relation.model.RelationType
 import com.hunzz.relationserver.domain.relation.service.RelationHandler
 import com.hunzz.relationserver.global.aop.auth.AuthPrincipal
@@ -31,7 +31,7 @@ class RelationController(
     fun getFollowings(
         @PathVariable userId: UUID,
         @RequestParam(required = false) cursor: UUID?
-    ): ResponseEntity<List<FollowResponse>> {
+    ): ResponseEntity<FollowSliceResponse> {
         val body = relationHandler.getRelations(userId = userId, cursor = cursor, type = RelationType.FOLLOWING)
 
         return ResponseEntity.ok(body)
@@ -41,7 +41,7 @@ class RelationController(
     fun getFollowers(
         @PathVariable userId: UUID,
         @RequestParam(required = false) cursor: UUID?
-    ): ResponseEntity<List<FollowResponse>> {
+    ): ResponseEntity<FollowSliceResponse> {
         val body = relationHandler.getRelations(userId = userId, cursor = cursor, type = RelationType.FOLLOWER)
 
         return ResponseEntity.ok(body)

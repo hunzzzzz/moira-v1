@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthHandler(
-    private val authRedisScriptHandler: AuthRedisScriptHandler,
+    private val authRedisHandler: AuthRedisHandler,
     private val jwtProvider: JwtProvider,
     private val kafkaProducer: KafkaProducer
 ) {
@@ -31,7 +31,7 @@ class AuthHandler(
         // validate
         val email = request.email!!
         val password = request.password!!
-        val userAuth = authRedisScriptHandler.checkLoginRequest(inputEmail = email, inputPassword = password)
+        val userAuth = authRedisHandler.checkLoginRequest(inputEmail = email, inputPassword = password)
 
         // create token
         return createTokens(userAuth = userAuth)
@@ -58,7 +58,7 @@ class AuthHandler(
         val email = payload.get("email", String::class.java)
 
         // check rtk & get user auth
-        val userAuth = authRedisScriptHandler.checkRtk(email = email, rtkFromAuthHeader = authHeader)
+        val userAuth = authRedisHandler.checkRtk(email = email, rtkFromAuthHeader = authHeader)
 
         // create token
         return createTokens(userAuth = userAuth)

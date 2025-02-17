@@ -13,7 +13,6 @@ import com.hunzz.userserver.domain.user.dto.request.SignUpRequest
 import com.hunzz.userserver.domain.user.dto.response.UserResponse
 import org.springframework.aop.framework.AopContext
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -22,7 +21,7 @@ import java.util.*
 class UserHandler(
     private val kafkaProducer: KafkaProducer,
     private val passwordEncoder: PasswordEncoder,
-    private val userRedisScriptHandler: UserRedisScriptHandler,
+    private val userRedisHandler: UserRedisHandler,
     private val userRepository: UserRepository
 ) {
     private fun proxy() = AopContext.currentProxy() as UserHandler
@@ -37,7 +36,7 @@ class UserHandler(
     fun save(request: SignUpRequest): UUID {
         // validate
         isEqualPasswords(password1 = request.password!!, password2 = request.password2!!)
-        userRedisScriptHandler.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
+        userRedisHandler.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
 
         // encrypt
         val encodedPassword = passwordEncoder.encodePassword(rawPassword = request.password!!)
@@ -62,30 +61,49 @@ class UserHandler(
 
     fun getProfile(userId: UUID, targetId: UUID): UserResponse {
         val user = proxy().getWithLocalCache(userId = targetId)
+        val userRedisInfo = userRedisHandler.getUserRedisInfo(userId = targetId)
 
         return UserResponse(
             id = user.userId,
             status = user.status,
             name = user.name,
             imageUrl = user.imageUrl,
+            numOfFollowings = userRedisInfo.numOfFollowings,
+            numOfFollowers = userRedisInfo.numOfFollowers,
             isMyProfile = userId == targetId
         )
     }
 
     fun get(userId: UUID): CachedUser {
-        val user = userRepository.findByIdOrNull(id = userId)
+        val user = userRepository.findUserProfile(userId = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
         return CachedUser(userId = userId, status = user.status, name = user.name, imageUrl = user.imageUrl)
     }
 
-    @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "redisCacheManager")
     fun getWithRedisCache(userId: UUID): CachedUser {
-        return get(userId = userId)
+        val userCache = userRedisHandler.getUserCache(userId = userId)
+
+        return if (userCache == null) {
+            val cachedUser = get(userId = userId)
+            userRedisHandler.setUserCache(userId = userId, cachedUser = cachedUser)
+
+            cachedUser
+        } else userCache
     }
 
     @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")
     fun getWithLocalCache(userId: UUID): CachedUser {
         return getWithRedisCache(userId = userId)
+    }
+
+    fun getAll(missingIds: List<UUID>): HashMap<UUID, CachedUser> {
+        val hashMap = hashMapOf<UUID, CachedUser>()
+
+        missingIds.forEach {
+            hashMap[it] = proxy().getWithLocalCache(userId = it)
+        }
+
+        return hashMap
     }
 }

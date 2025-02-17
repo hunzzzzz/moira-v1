@@ -1,5 +1,6 @@
 package com.hunzz.relationserver.domain.relation.service
 
+import com.hunzz.relationserver.global.utility.KafkaProducer
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -10,6 +11,7 @@ import java.util.*
 @Component
 class RelationScheduler(
     private val jdbcTemplate: JdbcTemplate,
+    private val kafkaProducer: KafkaProducer,
     private val relationRedisScriptHandler: RelationRedisScriptHandler
 ) {
     private fun UUID.toBytes(): ByteArray {
@@ -36,6 +38,9 @@ class RelationScheduler(
             ps.setObject(3, LocalDateTime.now())
             ps.setObject(4, LocalDateTime.now())
         }
+
+        // send kafka message (to user-server)
+        kafkaProducer.send("follow", relations.map { it.targetId })
     }
 
     @Scheduled(fixedRate = 1000 * 10)

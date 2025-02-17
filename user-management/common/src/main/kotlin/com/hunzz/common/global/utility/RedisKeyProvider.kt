@@ -18,4 +18,8 @@ class RedisKeyProvider {
     fun emails() = "emails"
     fun ids() = "ids"
     fun user(userId: UUID) = "user:$userId"
+
+    // relation
+    fun following(userId: UUID) = "following:$userId"
+    fun follower(userId: UUID) = "follower:$userId"
 }
