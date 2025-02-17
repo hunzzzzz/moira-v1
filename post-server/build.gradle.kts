@@ -19,16 +19,21 @@ repositories {
     mavenCentral()
 }
 
+extra["jwtVersion"] = "0.12.6"
 extra["springCloudVersion"] = "2024.0.0"
 
 dependencies {
     // database
     runtimeOnly("com.mysql:mysql-connector-j")
-    // redis
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // jwt
+    implementation("io.jsonwebtoken:jjwt-api:${property("jwtVersion")}")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jwtVersion")}")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jwtVersion")}")
     // kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    // redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
     // springboot
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
