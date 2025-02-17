@@ -23,6 +23,8 @@ extra["jwtVersion"] = "0.12.6"
 extra["springCloudVersion"] = "2024.0.0"
 
 dependencies {
+    // cache
+    implementation("com.github.ben-manes.caffeine:caffeine")
     // database
     runtimeOnly("com.mysql:mysql-connector-j")
     // jwt
