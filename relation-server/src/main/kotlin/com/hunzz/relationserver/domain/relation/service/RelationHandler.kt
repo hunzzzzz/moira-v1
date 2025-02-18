@@ -5,7 +5,6 @@ import com.hunzz.relationserver.domain.relation.model.RelationType
 import com.hunzz.relationserver.global.exception.ErrorCode.CANNOT_FOLLOW_ITSELF
 import com.hunzz.relationserver.global.exception.ErrorCode.CANNOT_UNFOLLOW_ITSELF
 import com.hunzz.relationserver.global.exception.custom.InvalidRelationException
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -14,8 +13,6 @@ import java.util.*
 class RelationHandler(
     private val relationRedisScriptHandler: RelationRedisScriptHandler
 ) {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
     companion object {
         const val RELATION_PAGE_SIZE = 10L
     }
@@ -43,6 +40,7 @@ class RelationHandler(
     }
 
     fun getRelations(userId: UUID, cursor: UUID?, type: RelationType): FollowSliceResponse {
+        // get relation infos from redis
         val followResponses = relationRedisScriptHandler.getRelations(
             userId = userId,
             cursor = cursor,

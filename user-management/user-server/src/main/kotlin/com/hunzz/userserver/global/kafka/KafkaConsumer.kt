@@ -1,5 +1,6 @@
 package com.hunzz.userserver.global.kafka
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.userserver.domain.user.service.UserHandler
 import org.springframework.kafka.annotation.KafkaListener
@@ -16,5 +17,15 @@ class KafkaConsumer(
         val userId = objectMapper.readValue(message, UUID::class.java)
 
         userHandler.getWithRedisCache(userId = userId)
+    }
+
+    @KafkaListener(topics = ["add-users-cache"], groupId = "user-server-add-users-cache")
+    fun follow(message: String) {
+        val userIds = objectMapper.readValue(message, object : TypeReference<List<UUID>>() {})
+
+        // add user cache into redis
+        userIds.forEach {
+            userHandler.getWithRedisCache(userId = it)
+        }
     }
 }

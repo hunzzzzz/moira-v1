@@ -1,4 +1,4 @@
-package com.hunzz.userserver.global.client.controller
+package com.hunzz.userserver.domain.user.controller
 
 import com.hunzz.common.domain.user.model.CachedUser
 import com.hunzz.userserver.domain.user.service.UserHandler

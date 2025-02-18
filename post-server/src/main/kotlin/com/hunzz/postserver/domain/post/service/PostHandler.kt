@@ -9,7 +9,6 @@ import com.hunzz.postserver.global.aop.cache.UserCache
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_POST
 import com.hunzz.postserver.global.exception.ErrorCode.POST_NOT_FOUND
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,16 +30,6 @@ class PostHandler(
             ?: throw InvalidPostInfoException(POST_NOT_FOUND)
 
         return post
-    }
-
-    @Cacheable(cacheNames = ["post"], cacheManager = "redisCacheManager")
-    fun getWithRedisCache(postId: Long): Post {
-        return get(postId = postId)
-    }
-
-    @Cacheable(cacheNames = ["post"], cacheManager = "localCacheManager")
-    fun getWithLocalCache(postId: Long): Post {
-        return getWithRedisCache(postId = postId)
     }
 
     @Transactional
