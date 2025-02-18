@@ -45,3 +45,11 @@ spring:
           filters:
             - RewritePath=/relation-server/(?<segment>.*), /$\{segment}
             - JwtAuthorizationFilter
+        # post server
+        - id: post-server
+          uri: lb://POST-SERVER
+          predicates:
+            - Path=/post-server/posts/**
+          filters:
+            - RewritePath=/post-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
