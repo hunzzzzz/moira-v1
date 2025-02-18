@@ -5,6 +5,7 @@ import com.hunzz.postserver.domain.post.model.Post
 import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.domain.post.model.PostScope
 import com.hunzz.postserver.domain.post.repository.PostRepository
+import com.hunzz.postserver.global.aop.cache.UserCache
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_POST
 import com.hunzz.postserver.global.exception.ErrorCode.POST_NOT_FOUND
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
@@ -43,6 +44,7 @@ class PostHandler(
     }
 
     @Transactional
+    @UserCache
     fun save(userId: UUID, request: PostRequest): Long {
         // save 'post' in db
         val post = Post(
