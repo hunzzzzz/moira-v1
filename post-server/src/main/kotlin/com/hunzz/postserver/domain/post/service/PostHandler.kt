@@ -2,6 +2,7 @@ package com.hunzz.postserver.domain.post.service
 
 import com.hunzz.postserver.domain.post.dto.request.PostRequest
 import com.hunzz.postserver.domain.post.model.Post
+import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.domain.post.model.PostScope
 import com.hunzz.postserver.domain.post.repository.PostRepository
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_POST
@@ -15,6 +16,7 @@ import java.util.*
 
 @Service
 class PostHandler(
+    private val postRedisHandler: PostRedisHandler,
     private val postRepository: PostRepository
 ) {
     private fun isAuthorOfPost(userId: UUID, post: Post) {
@@ -51,6 +53,14 @@ class PostHandler(
         val postId = postRepository.save(post).id!!
 
         return postId
+    }
+
+    fun like(userId: UUID, postId: Long) {
+        postRedisHandler.like(userId = userId, postId = postId, type = PostLikeType.LIKE)
+    }
+
+    fun unlike(userId: UUID, postId: Long) {
+        postRedisHandler.like(userId = userId, postId = postId, type = PostLikeType.UNLIKE)
     }
 
     @Transactional

@@ -7,5 +7,7 @@ enum class ErrorCode(val message: String) {
     INVALID_POST_CONTENT("게시글은 1자 이상, 500자 이하로 작성해주세요."),
 
     POST_NOT_FOUND("존재하지 않는 게시글입니다."),
-    CANNOT_UPDATE_OTHERS_POST("본인의 게시글이 아닙니다.")
+    CANNOT_UPDATE_OTHERS_POST("본인의 게시글이 아닙니다."),
+    ALREADY_LIKED("이미 좋아요한 게시글입니다."),
+    ALREADY_UNLIKED("잘못된 요청입니다.")
 }
