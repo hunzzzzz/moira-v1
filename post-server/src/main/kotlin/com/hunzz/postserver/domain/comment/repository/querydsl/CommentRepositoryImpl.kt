@@ -21,8 +21,8 @@ class CommentRepositoryImpl(
         cursor: Long?
     ): List<CommentQueryDslResponse> {
         val conditions = BooleanBuilder().apply {
-            comment.postId.eq(postId)
-            comment.status.eq(CommentStatus.NORMAL)
+            and(comment.postId.eq(postId))
+            and(comment.status.eq(CommentStatus.NORMAL))
             cursor?.let { cursor -> and(comment.id.lt(cursor)) }
         }
 
@@ -37,7 +37,6 @@ class CommentRepositoryImpl(
         ).from(comment)
             .where(conditions)
             .orderBy(comment.id.desc())
-            .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()
 
