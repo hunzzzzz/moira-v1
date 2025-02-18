@@ -11,9 +11,7 @@ import com.hunzz.postserver.global.exception.ErrorCode
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_COMMENT
 import com.hunzz.postserver.global.exception.ErrorCode.COMMENT_NOT_BELONGS_TO_POST
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
-import com.hunzz.postserver.global.model.CachedUser
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -21,9 +19,9 @@ import java.util.*
 
 @Component
 class CommentHandler(
+    private val commentRedisHandler: CommentRedisHandler,
     private val commentRepository: CommentRepository,
     private val objectMapper: ObjectMapper,
-    private val redisTemplate: RedisTemplate<String, String>,
     private val userServerClient: UserServerClient
 ) {
     private fun validateComment(userId: UUID, postId: Long, comment: Comment) {
@@ -56,21 +54,26 @@ class CommentHandler(
     fun getAll(postId: Long, cursor: Long?): CommentSliceResponse {
         val pageable = PageRequest.ofSize(10)
 
-        val contentsFromDB = commentRepository.getComments(
+        // get comment infos from db
+        val comments = commentRepository.getComments(
             pageable = pageable,
             postId = postId,
             cursor = cursor
         )
-        val contents = contentsFromDB.map { data ->
-            val userInfo = redisTemplate.opsForValue().get("user:${data.userId}")
-                ?.let { objectMapper.readValue(it, CachedUser::class.java) }
-                ?: userServerClient.getUser(userId = data.userId)
+        // get user infos from redis & user-server
+        val userInfos = commentRedisHandler.getUserInfo(
+            userIds = comments.map { it.userId.toString() }
+        )
+
+        // combine
+        val contents = comments.mapIndexed { index, comment ->
+            val userInfo = userInfos[index]
 
             CommentResponse(
-                commentId = data.commentId,
-                status = data.status,
-                content = data.content,
-                userId = data.userId,
+                commentId = comment.commentId,
+                status = comment.status,
+                content = comment.content,
+                userId = comment.userId,
                 userName = userInfo.name,
                 userImageUrl = userInfo.imageUrl
             )
