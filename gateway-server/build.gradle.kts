@@ -18,16 +18,30 @@ repositories {
 	mavenCentral()
 }
 
+extra["jwtVersion"] = "0.12.6"
 extra["springCloudVersion"] = "2024.0.0"
 
 dependencies {
+	// jwt
+	implementation("io.jsonwebtoken:jjwt-api:${property("jwtVersion")}")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jwtVersion")}")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jwtVersion")}")
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	// monitoring
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	// redis
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	// spring cloud
 	implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
 	implementation("org.springframework.cloud:spring-cloud-starter-bus-kafka")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
-	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-server")
+	implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+	// test
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 dependencyManagement {

@@ -5,10 +5,10 @@ import com.hunzz.postserver.domain.post.model.Post
 import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.domain.post.model.PostScope
 import com.hunzz.postserver.domain.post.repository.PostRepository
+import com.hunzz.postserver.global.aop.cache.UserCache
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_POST
 import com.hunzz.postserver.global.exception.ErrorCode.POST_NOT_FOUND
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,9 +20,8 @@ class PostHandler(
     private val postRepository: PostRepository
 ) {
     private fun isAuthorOfPost(userId: UUID, post: Post) {
-        val condition = userId == post.userId
-
-        require(condition) { throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_POST) }
+        if (userId != post.userId)
+            throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_POST)
     }
 
     fun get(postId: Long): Post {
@@ -32,17 +31,8 @@ class PostHandler(
         return post
     }
 
-    @Cacheable(cacheNames = ["post"], cacheManager = "redisCacheManager")
-    fun getWithRedisCache(postId: Long): Post {
-        return get(postId = postId)
-    }
-
-    @Cacheable(cacheNames = ["post"], cacheManager = "localCacheManager")
-    fun getWithLocalCache(postId: Long): Post {
-        return getWithRedisCache(postId = postId)
-    }
-
     @Transactional
+    @UserCache
     fun save(userId: UUID, request: PostRequest): Long {
         // save 'post' in db
         val post = Post(

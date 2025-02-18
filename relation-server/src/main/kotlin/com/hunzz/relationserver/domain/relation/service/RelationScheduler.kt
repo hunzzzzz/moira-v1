@@ -40,7 +40,7 @@ class RelationScheduler(
         }
 
         // send kafka message (to user-server)
-        kafkaProducer.send("follow", relations.map { it.targetId })
+        kafkaProducer.send("add-users-cache", relations.map { it.targetId })
     }
 
     @Scheduled(fixedRate = 1000 * 10)
