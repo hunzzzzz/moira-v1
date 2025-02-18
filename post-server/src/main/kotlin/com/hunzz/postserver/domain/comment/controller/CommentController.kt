@@ -1,6 +1,7 @@
 package com.hunzz.postserver.domain.comment.controller
 
 import com.hunzz.postserver.domain.comment.dto.request.CommentRequest
+import com.hunzz.postserver.domain.comment.dto.response.CommentSliceResponse
 import com.hunzz.postserver.domain.comment.service.CommentHandler
 import com.hunzz.postserver.global.aop.auth.AuthPrincipal
 import jakarta.validation.Valid
@@ -23,6 +24,16 @@ class CommentController(
         val body = commentHandler.add(userId = userId, postId = postId, request = request)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(body)
+    }
+
+    @GetMapping
+    fun getAll(
+        @PathVariable postId: Long,
+        @RequestParam cursor: Long?
+    ): ResponseEntity<CommentSliceResponse> {
+        val body = commentHandler.getAll(postId = postId, cursor = cursor)
+
+        return ResponseEntity.ok(body)
     }
 
     @PutMapping("/{commentId}")

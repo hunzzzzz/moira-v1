@@ -1,6 +1,7 @@
 package com.hunzz.postserver.domain.comment.model
 
 import com.hunzz.postserver.domain.comment.dto.request.CommentRequest
+import com.hunzz.postserver.global.model.BaseTime
 import jakarta.persistence.*
 import java.util.*
 
@@ -23,7 +24,7 @@ class Comment(
 
     @Column(name = "post_id", nullable = false)
     val postId: Long
-) {
+) : BaseTime() {
     fun update(request: CommentRequest) {
         this.content = request.content!!
     }

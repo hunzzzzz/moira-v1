@@ -1,12 +1,19 @@
 package com.hunzz.postserver.domain.comment.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.postserver.domain.comment.dto.request.CommentRequest
+import com.hunzz.postserver.domain.comment.dto.response.CommentResponse
+import com.hunzz.postserver.domain.comment.dto.response.CommentSliceResponse
 import com.hunzz.postserver.domain.comment.model.Comment
 import com.hunzz.postserver.domain.comment.repository.CommentRepository
+import com.hunzz.postserver.global.client.UserServerClient
 import com.hunzz.postserver.global.exception.ErrorCode
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_COMMENT
 import com.hunzz.postserver.global.exception.ErrorCode.COMMENT_NOT_BELONGS_TO_POST
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
+import com.hunzz.postserver.global.model.CachedUser
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -14,7 +21,10 @@ import java.util.*
 
 @Component
 class CommentHandler(
-    private val commentRepository: CommentRepository
+    private val commentRepository: CommentRepository,
+    private val objectMapper: ObjectMapper,
+    private val redisTemplate: RedisTemplate<String, String>,
+    private val userServerClient: UserServerClient
 ) {
     private fun validateComment(userId: UUID, postId: Long, comment: Comment) {
         if (userId != comment.userId)
@@ -41,6 +51,36 @@ class CommentHandler(
             ?: throw InvalidPostInfoException(ErrorCode.COMMENT_NOT_FOUND)
 
         return comment
+    }
+
+    fun getAll(postId: Long, cursor: Long?): CommentSliceResponse {
+        val pageable = PageRequest.ofSize(10)
+
+        val contentsFromDB = commentRepository.getComments(
+            pageable = pageable,
+            postId = postId,
+            cursor = cursor
+        )
+        val contents = contentsFromDB.map { data ->
+            val userInfo = redisTemplate.opsForValue().get("user:${data.userId}")
+                ?.let { objectMapper.readValue(it, CachedUser::class.java) }
+                ?: userServerClient.getUser(userId = data.userId)
+
+            CommentResponse(
+                commentId = data.commentId,
+                status = data.status,
+                content = data.content,
+                userId = data.userId,
+                userName = userInfo.name,
+                userImageUrl = userInfo.imageUrl
+            )
+        }
+
+        return CommentSliceResponse(
+            currentCursor = cursor,
+            nextCursor = contents.lastOrNull()?.commentId,
+            contents = contents
+        )
     }
 
     @Transactional
