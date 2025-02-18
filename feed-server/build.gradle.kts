@@ -1,6 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.1.0"
 	kotlin("plugin.spring") version "2.1.0"
+	kotlin("plugin.jpa") version "2.1.0"
 	id("org.springframework.boot") version "3.4.2"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -27,11 +28,13 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	// redis
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	// springboot
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	// spring cloud
 	implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
 	implementation("org.springframework.cloud:spring-cloud-starter-bus-kafka")
 	implementation("org.springframework.cloud:spring-cloud-starter-config")
-	implementation("org.springframework.cloud:spring-cloud-starter-gateway")
 	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 	// test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
