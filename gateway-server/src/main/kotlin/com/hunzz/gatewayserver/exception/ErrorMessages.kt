@@ -1,4 +1,4 @@
-package com.hunzz.gatewayservice.exception
+package com.hunzz.gatewayserver.exception
 
 object ErrorMessages {
     const val INVALID_TOKEN = "유효하지 않은 JWT 토큰입니다."

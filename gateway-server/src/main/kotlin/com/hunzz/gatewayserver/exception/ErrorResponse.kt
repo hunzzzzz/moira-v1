@@ -1,4 +1,4 @@
-package com.hunzz.gatewayservice.exception
+package com.hunzz.gatewayserver.exception
 
 import org.springframework.http.HttpStatus
 import java.time.LocalDateTime

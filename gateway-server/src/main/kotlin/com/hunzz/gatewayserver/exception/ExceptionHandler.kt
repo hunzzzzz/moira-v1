@@ -1,6 +1,6 @@
-package com.hunzz.gatewayservice.exception
+package com.hunzz.gatewayserver.exception
 
-import com.hunzz.gatewayservice.exception.custom.JwtException
+import com.hunzz.gatewayserver.exception.custom.JwtException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus

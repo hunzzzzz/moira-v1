@@ -1,4 +1,4 @@
-package com.hunzz.gatewayservice.utility
+package com.hunzz.gatewayserver.utility
 
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component

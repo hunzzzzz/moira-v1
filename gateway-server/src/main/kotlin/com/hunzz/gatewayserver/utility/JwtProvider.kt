@@ -1,4 +1,4 @@
-package com.hunzz.gatewayservice.utility
+package com.hunzz.gatewayserver.utility
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

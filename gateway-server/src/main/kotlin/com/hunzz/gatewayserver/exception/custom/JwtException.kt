@@ -1,3 +1,3 @@
-package com.hunzz.gatewayservice.exception.custom
+package com.hunzz.gatewayserver.exception.custom
 
 class JwtException(message: String) : RuntimeException(message)

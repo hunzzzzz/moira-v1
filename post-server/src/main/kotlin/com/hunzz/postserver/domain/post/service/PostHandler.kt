@@ -20,9 +20,8 @@ class PostHandler(
     private val postRepository: PostRepository
 ) {
     private fun isAuthorOfPost(userId: UUID, post: Post) {
-        val condition = userId == post.userId
-
-        require(condition) { throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_POST) }
+        if (userId != post.userId)
+            throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_POST)
     }
 
     fun get(postId: Long): Post {

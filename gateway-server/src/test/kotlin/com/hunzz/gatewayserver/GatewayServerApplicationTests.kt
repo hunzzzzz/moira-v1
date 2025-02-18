@@ -1,10 +1,10 @@
-package com.hunzz.gatewayservice
+package com.hunzz.gatewayserver
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class GatewayServiceApplicationTests {
+class GatewayServerApplicationTests {
 
 	@Test
 	fun contextLoads() {

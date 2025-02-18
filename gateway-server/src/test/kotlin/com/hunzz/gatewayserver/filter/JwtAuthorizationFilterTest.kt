@@ -1,13 +1,13 @@
-package com.hunzz.gatewayservice.filter
+package com.hunzz.gatewayserver.filter
 
-import com.hunzz.gatewayservice.exception.ErrorMessages.EXPIRED_ATK
-import com.hunzz.gatewayservice.exception.ErrorMessages.EXPIRED_AUTH
-import com.hunzz.gatewayservice.exception.ErrorMessages.INVALID_TOKEN
-import com.hunzz.gatewayservice.exception.ErrorMessages.UNPACKED_ATK
-import com.hunzz.gatewayservice.exception.custom.JwtException
-import com.hunzz.gatewayservice.utility.JwtProvider
-import com.hunzz.gatewayservice.utility.RedisCommands
-import com.hunzz.gatewayservice.utility.RedisKeyProvider
+import com.hunzz.gatewayserver.exception.ErrorMessages.EXPIRED_ATK
+import com.hunzz.gatewayserver.exception.ErrorMessages.EXPIRED_AUTH
+import com.hunzz.gatewayserver.exception.ErrorMessages.INVALID_TOKEN
+import com.hunzz.gatewayserver.exception.ErrorMessages.UNPACKED_ATK
+import com.hunzz.gatewayserver.exception.custom.JwtException
+import com.hunzz.gatewayserver.utility.JwtProvider
+import com.hunzz.gatewayserver.utility.RedisCommands
+import com.hunzz.gatewayserver.utility.RedisKeyProvider
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
