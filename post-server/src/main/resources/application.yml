@@ -3,4 +3,4 @@ server:
 
 spring:
   application:
-    name: relation-server
+    name: post-server
