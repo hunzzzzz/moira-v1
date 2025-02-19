@@ -6,6 +6,7 @@ import com.hunzz.postserver.domain.comment.dto.response.CommentResponse
 import com.hunzz.postserver.domain.comment.dto.response.CommentSliceResponse
 import com.hunzz.postserver.domain.comment.model.Comment
 import com.hunzz.postserver.domain.comment.repository.CommentRepository
+import com.hunzz.postserver.global.aop.cache.PostCache
 import com.hunzz.postserver.global.aop.cache.UserCache
 import com.hunzz.postserver.global.client.UserServerClient
 import com.hunzz.postserver.global.exception.ErrorCode
@@ -34,6 +35,7 @@ class CommentHandler(
 
     @Transactional
     @UserCache
+    @PostCache
     fun add(userId: UUID, postId: Long, request: CommentRequest): Long {
         commentRepository.save(
             Comment(

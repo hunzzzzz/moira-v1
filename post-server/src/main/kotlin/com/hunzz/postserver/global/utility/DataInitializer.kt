@@ -7,6 +7,7 @@ import com.hunzz.postserver.domain.post.service.PostHandler
 import org.springframework.boot.CommandLineRunner
 import org.springframework.core.env.Environment
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -14,6 +15,7 @@ import java.util.*
 class DataInitializer(
     private val commentHandler: CommentHandler,
     private val env: Environment,
+    private val jdbcTemplate: JdbcTemplate,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>,
     private val postHandler: PostHandler
@@ -22,6 +24,15 @@ class DataInitializer(
         val postRequest = PostRequest(content = "테스트 게시글입니다.", scope = "PUBLIC")
 
         return postHandler.save(userId = myId, request = postRequest)
+    }
+
+    private fun add10000Post() {
+        val postRequest = PostRequest(content = "테스트 게시글입니다.", scope = "PUBLIC")
+        val userId = UUID.fromString("b717ea17-728d-4316-8caf-4965d131b7a8")
+
+        repeat(10_000) {
+            postHandler.save(userId = userId, request = postRequest)
+        }
     }
 
     private fun add1000Comments(postId: Long) {
@@ -39,13 +50,20 @@ class DataInitializer(
         val profile = env.getProperty("spring.profiles.active", String::class.java)
 
         if (ddlAuto == "create" && profile != "test") {
-            val myId = UUID.fromString("c7f045f3-ebaf-4a2a-9149-ec26d628abff")
+            val myId = UUID.fromString("b65996f0-baa1-4e6a-a707-d57236539e93")
 
             // add post
-            val postId = addPost(myId = myId)
+//            val postId = addPost(myId = myId)
+
+            // add 1000 posts
+            add10000Post()
 
             // add 1000 comments
-            add1000Comments(postId = postId)
+//            add1000Comments(postId = postId)
+
+            // add index
+            val sql = "CREATE INDEX idx_comment_post_status_id ON comments (post_id, status, comment_id DESC)"
+            jdbcTemplate.execute(sql)
         }
     }
 }
