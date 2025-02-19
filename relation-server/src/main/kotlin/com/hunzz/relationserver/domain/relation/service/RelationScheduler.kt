@@ -38,9 +38,6 @@ class RelationScheduler(
             ps.setObject(3, LocalDateTime.now())
             ps.setObject(4, LocalDateTime.now())
         }
-
-        // send kafka message (to user-server)
-        kafkaProducer.send("add-users-cache", relations.map { it.targetId })
     }
 
     @Scheduled(fixedRate = 1000 * 10)

@@ -1,7 +1,7 @@
-package com.hunzz.postserver.global.aop.cache
+package com.hunzz.relationserver.global.aop.cache
 
-import com.hunzz.postserver.global.utility.KafkaProducer
-import com.hunzz.postserver.global.utility.RedisKeyProvider
+import com.hunzz.relationserver.global.utility.KafkaProducer
+import com.hunzz.relationserver.global.utility.RedisKeyProvider
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.AfterReturning
 import org.aspectj.lang.annotation.Aspect
@@ -18,7 +18,7 @@ class UserCacheAspect(
     private val redisTemplate: RedisTemplate<String, String>
 ) {
     @AfterReturning(
-        value = "@annotation(com.hunzz.postserver.global.aop.cache.UserCache)"
+        value = "@annotation(com.hunzz.relationserver.global.aop.cache.UserCache)"
     )
     fun addUserCache(joinPoint: JoinPoint) {
         val signature = joinPoint.signature as MethodSignature
