@@ -2,6 +2,7 @@ package com.hunzz.postserver.domain.post.service
 
 import com.hunzz.postserver.domain.post.dto.request.AddPostKafkaRequest
 import com.hunzz.postserver.domain.post.dto.request.PostRequest
+import com.hunzz.postserver.domain.post.model.CachedPost
 import com.hunzz.postserver.domain.post.model.Post
 import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.domain.post.model.PostScope
@@ -34,6 +35,24 @@ class PostHandler(
         return post
     }
 
+    fun getCachedPost(postId: Long): CachedPost {
+        val post = postRepository.findByIdOrNull(id = postId)
+            ?: throw InvalidPostInfoException(POST_NOT_FOUND)
+
+        return CachedPost(
+            postId = post.id!!,
+            scope = post.scope,
+            status = post.status,
+            content = post.content
+        )
+    }
+
+    fun getAll(postIds: List<Long>): List<CachedPost> {
+        return postIds.map {
+            this.getCachedPost(postId = it)
+        }
+    }
+
     @Transactional
     @UserCache
     fun save(userId: UUID, request: PostRequest): Long {
@@ -46,8 +65,10 @@ class PostHandler(
         val postId = postRepository.save(post).id!!
 
         // send kafka message (to feed-server)
-        val data = AddPostKafkaRequest(authorId = userId, postId = postId)
-        kafkaProducer.send(topic = "add-post", data)
+        if (post.scope != PostScope.PRIVATE) {
+            val data = AddPostKafkaRequest(authorId = userId, postId = postId)
+            kafkaProducer.send(topic = "add-post", data)
+        }
 
         return postId
     }
@@ -63,7 +84,7 @@ class PostHandler(
     @Transactional
     fun update(userId: UUID, postId: Long, request: PostRequest) {
         // get
-        val post = get(postId = postId)
+        val post = this.get(postId = postId)
 
         // validate
         isAuthorOfPost(userId = userId, post = post)
@@ -75,7 +96,7 @@ class PostHandler(
     @Transactional
     fun delete(userId: UUID, postId: Long) {
         // get
-        val post = get(postId = postId)
+        val post = this.get(postId = postId)
 
         // validate
         isAuthorOfPost(userId = userId, post = post)

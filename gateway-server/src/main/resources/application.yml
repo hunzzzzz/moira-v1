@@ -49,7 +49,7 @@ spring:
         - id: post-server
           uri: lb://POST-SERVER
           predicates:
-            - Path=/auth-server/actuator/**, /post-server/private/**
+            - Path=/post-server/actuator/**, /post-server/private/**
           filters:
             - RewritePath=/post-server/(?<segment>.*), /$\{segment}
         # post server

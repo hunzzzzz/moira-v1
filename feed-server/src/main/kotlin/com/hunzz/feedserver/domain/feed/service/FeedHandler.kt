@@ -1,10 +1,12 @@
 package com.hunzz.feedserver.domain.feed.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.hunzz.feedserver.domain.feed.dto.response.FeedResponse
 import com.hunzz.feedserver.domain.feed.dto.response.FeedSliceResponse
 import com.hunzz.feedserver.domain.feed.dto.response.kafka.AddPostKafkaResponse
 import com.hunzz.feedserver.domain.feed.dto.response.kafka.FollowKafkaResponse
 import com.hunzz.feedserver.domain.feed.repository.FeedRepository
+import com.hunzz.feedserver.global.client.PostServerClient
 import org.springframework.data.domain.PageRequest
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
@@ -17,7 +19,8 @@ class FeedHandler(
     private val feedRedisHandler: FeedRedisHandler,
     private val feedRepository: FeedRepository,
     private val jdbcTemplate: JdbcTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val postServerClient: PostServerClient
 ) {
     private fun UUID.toBytes(): ByteArray {
         val byteBuffer = ByteBuffer.allocate(16)
@@ -29,26 +32,46 @@ class FeedHandler(
     }
 
     fun getFeed(userId: UUID, cursor: Long?): FeedSliceResponse {
+        // get feed data from db
         val feedData = feedRepository.getFeed(
             pageable = PageRequest.ofSize(5),
             userId = userId,
             cursor = cursor
         )
 
-//        val contents = feedData.map {
-//            val postId = it.postId
-//            val authorId = it.authorId
-//
-//            FeedResponse(
-//                postId = postId,
-//                userId = authorId
-//            )
-//        }
+        // get user/post/like infos
+        val userIds = feedData.map { it.userId }
+        val userInfos = feedRedisHandler.getUserInfo(userIds = userIds)
+
+        val postIds = feedData.map { it.postId }
+        val postInfos = postServerClient.getPosts(postIds = postIds)
+        val likeInfos = feedRedisHandler.getLikeInfo(userId = userId, postIds = postIds)
+
+        // combine
+        val contents = feedData.mapIndexed { i, data ->
+            val postId = data.postId
+            val authorId = data.authorId
+            val user = userInfos[i]
+            val post = postInfos[i]
+            val like = likeInfos[i]
+
+            FeedResponse(
+                postId = postId,
+                postStatus = post.status,
+                postScope = post.scope,
+                postContent = post.content,
+                userId = authorId,
+                userName = user.name,
+                userImageUrl = user.imageUrl,
+                numOfLikes = like.likes,
+                hasLike = like.hasLike
+            )
+        }
 
         return FeedSliceResponse(
             currentCursor = cursor,
             nextCursor = feedData.last().postId,
-            contents = mutableListOf() // TODO
+            contents = contents
         )
     }
 
