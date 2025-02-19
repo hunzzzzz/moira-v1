@@ -16,7 +16,7 @@ class PostPrivateController(
     @GetMapping("/posts")
     fun getPosts(
         @RequestParam postIds: List<Long>
-    ): ResponseEntity<List<CachedPost>> {
+    ): ResponseEntity<HashMap<Long, CachedPost>> {
         val body = postHandler.getAll(postIds)
 
         return ResponseEntity.ok(body)

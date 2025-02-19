@@ -7,11 +7,14 @@ import com.hunzz.postserver.domain.post.model.Post
 import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.domain.post.model.PostScope
 import com.hunzz.postserver.domain.post.repository.PostRepository
+import com.hunzz.postserver.global.aop.cache.PostCache
 import com.hunzz.postserver.global.aop.cache.UserCache
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_POST
 import com.hunzz.postserver.global.exception.ErrorCode.POST_NOT_FOUND
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
 import com.hunzz.postserver.global.utility.KafkaProducer
+import org.springframework.aop.framework.AopContext
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +26,8 @@ class PostHandler(
     private val postRedisHandler: PostRedisHandler,
     private val postRepository: PostRepository
 ) {
+    private fun proxy() = AopContext.currentProxy() as PostHandler
+
     private fun isAuthorOfPost(userId: UUID, post: Post) {
         if (userId != post.userId)
             throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_POST)
@@ -36,8 +41,7 @@ class PostHandler(
     }
 
     fun getCachedPost(postId: Long): CachedPost {
-        val post = postRepository.findByIdOrNull(id = postId)
-            ?: throw InvalidPostInfoException(POST_NOT_FOUND)
+        val post = get(postId = postId)
 
         return CachedPost(
             postId = post.id!!,
@@ -47,10 +51,30 @@ class PostHandler(
         )
     }
 
-    fun getAll(postIds: List<Long>): List<CachedPost> {
-        return postIds.map {
-            this.getCachedPost(postId = it)
+    fun getCachedPostWithRedisCache(postId: Long): CachedPost {
+        val postCache = postRedisHandler.getPostCache(postId = postId)
+
+        return if (postCache == null) {
+            val cachedPost = getCachedPost(postId = postId)
+            postRedisHandler.setPostCache(postId = postId, cachedPost = cachedPost)
+
+            cachedPost
+        } else postCache
+    }
+
+    @Cacheable(cacheNames = ["post"], key = "#postId", cacheManager = "localCacheManager")
+    fun getCachedPostWithLocalCache(postId: Long): CachedPost {
+        return getCachedPostWithRedisCache(postId = postId)
+    }
+
+    fun getAll(postIds: List<Long>): HashMap<Long, CachedPost> {
+        val hashMap = hashMapOf<Long, CachedPost>()
+
+        postIds.forEach {
+            hashMap[it] = proxy().getCachedPostWithLocalCache(postId = it)
         }
+
+        return hashMap
     }
 
     @Transactional
@@ -70,9 +94,13 @@ class PostHandler(
             kafkaProducer.send(topic = "add-post", data)
         }
 
+        // send kafka message (to post-server)
+        kafkaProducer.send(topic = "add-post-cache", data = postId)
+
         return postId
     }
 
+    @PostCache
     fun like(userId: UUID, postId: Long) {
         postRedisHandler.like(userId = userId, postId = postId, type = PostLikeType.LIKE)
     }

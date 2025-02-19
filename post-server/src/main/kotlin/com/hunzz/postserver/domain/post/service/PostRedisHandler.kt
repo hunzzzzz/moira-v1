@@ -2,6 +2,7 @@ package com.hunzz.postserver.domain.post.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.postserver.domain.post.dto.request.AddPostKafkaRequest
+import com.hunzz.postserver.domain.post.model.CachedPost
 import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.global.exception.ErrorCode.ALREADY_LIKED
 import com.hunzz.postserver.global.exception.ErrorCode.ALREADY_UNLIKED
@@ -13,6 +14,7 @@ import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Component
 class PostRedisHandler(
@@ -51,6 +53,24 @@ class PostRedisHandler(
             listOf(latestPostsKey), // keys
             data.postId.toString(), // argv[1]
             System.currentTimeMillis().toString() // argv[2]
+        )
+    }
+
+    fun getPostCache(postId: Long): CachedPost? {
+        val postCacheKey = redisKeyProvider.post(postId = postId)
+
+        return redisTemplate.opsForValue().get(postCacheKey)
+            ?.let { objectMapper.readValue(it, CachedPost::class.java) }
+    }
+
+    fun setPostCache(postId: Long, cachedPost: CachedPost) {
+        val postCacheKey = redisKeyProvider.post(postId = postId)
+
+        redisTemplate.opsForValue().set(
+            postCacheKey,
+            objectMapper.writeValueAsString(cachedPost),
+            6,
+            TimeUnit.HOURS
         )
     }
 

@@ -13,5 +13,5 @@ interface PostServerClient {
     @GetMapping("/posts")
     fun getPosts(
         @RequestParam postIds: List<Long>
-    ): List<CachedPost>
+    ): HashMap<Long, CachedPost>
 }

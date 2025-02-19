@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.nio.ByteBuffer
 import java.util.*
 
@@ -39,12 +40,15 @@ class FeedHandler(
             cursor = cursor
         )
 
+        if (feedData.isEmpty())
+            return FeedSliceResponse(currentCursor = cursor, nextCursor = null, contents = listOf())
+
         // get user/post/like infos
         val userIds = feedData.map { it.userId }
         val userInfos = feedRedisHandler.getUserInfo(userIds = userIds)
 
         val postIds = feedData.map { it.postId }
-        val postInfos = postServerClient.getPosts(postIds = postIds)
+        val postInfos = feedRedisHandler.getPostInfo(postIds = postIds)
         val likeInfos = feedRedisHandler.getLikeInfo(userId = userId, postIds = postIds)
 
         // combine
@@ -113,6 +117,7 @@ class FeedHandler(
 
     // 유저 A가 유저 B를 언팔로우할 때, 유저 A(user)의 피드에 유저 B(author)의 게시글들이 삭제된다.
     @KafkaListener(topics = ["unfollow"], groupId = "feed-server-when-unfollow")
+    @Transactional
     fun whenUnfollow(message: String) {
         val data = objectMapper.readValue(message, FollowKafkaResponse::class.java)
 

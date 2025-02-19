@@ -2,7 +2,9 @@ package com.hunzz.feedserver.domain.feed.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.feedserver.domain.feed.dto.response.FeedLikeResponse
+import com.hunzz.feedserver.global.client.PostServerClient
 import com.hunzz.feedserver.global.client.UserServerClient
+import com.hunzz.feedserver.global.model.CachedPost
 import com.hunzz.feedserver.global.model.CachedUser
 import com.hunzz.feedserver.global.utility.RedisKeyProvider
 import org.springframework.data.redis.core.RedisTemplate
@@ -13,6 +15,7 @@ import java.util.*
 @Component
 class FeedRedisHandler(
     private val objectMapper: ObjectMapper,
+    private val postServerClient: PostServerClient,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>,
     private val userServerClient: UserServerClient
@@ -98,6 +101,77 @@ class FeedRedisHandler(
             }
 
         return users
+    }
+
+    fun getPostInfo(postIds: List<Long>): List<CachedPost> {
+        val script = """
+            local post_ids = cjson.decode(ARGV[1])
+            local keys = {}
+            
+            -- KEY 배열 생성
+            for i, post_id in ipairs(post_ids) do
+                keys[i] = 'post:' .. post_id
+            end
+            
+            -- MGET으로 일괄 조회
+            local post_infos = redis.call('MGET', unpack(keys))
+            
+            -- 누락된 데이터 처리
+            local result = {}
+            for i, info in ipairs(post_infos) do
+                if info == false then
+                    result[i] = 'NULL:' .. post_ids[i]
+                else
+                    result[i] = info
+                end
+            end
+            
+            return result
+        """.trimIndent()
+
+        var retryCount = 0
+        val maxRetries = 3
+
+        var result: List<*> = listOf<Any>()
+        var missingInfos = hashMapOf<Long, CachedPost>()
+
+        while (retryCount < maxRetries) {
+            try {
+                // execute script
+                result = redisTemplate.execute(
+                    RedisScript.of(script, List::class.java), // script
+                    listOf(), // keys
+                    objectMapper.writeValueAsString(postIds) // argv[1]
+                )
+
+                // if there's no cache in redis, get follow info from user-server
+                val missingIds = result.filterIsInstance<String>()
+                    .filter { it.startsWith("NULL:") }
+                    .map { it.toLong() }
+
+                if (missingIds.isNotEmpty())
+                    missingInfos = postServerClient.getPosts(postIds = missingIds)
+
+                break
+            } catch (e: Exception) {
+                retryCount++
+                if (retryCount == maxRetries) throw e
+
+                Thread.sleep(1000)
+            }
+        }
+
+        // return result
+        val posts = result.filterIsInstance<String>()
+            .mapNotNull {
+                if (it.startsWith("NULL:")) {
+                    val id = it.substring(5).toLong()
+
+                    missingInfos[id]
+                } else objectMapper.readValue(it, CachedPost::class.java)
+            }
+
+        return posts
     }
 
     fun getLikeInfo(userId: UUID, postIds: List<Long>): List<FeedLikeResponse> {

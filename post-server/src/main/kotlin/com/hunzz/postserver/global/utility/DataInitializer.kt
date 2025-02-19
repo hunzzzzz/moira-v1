@@ -26,6 +26,15 @@ class DataInitializer(
         return postHandler.save(userId = myId, request = postRequest)
     }
 
+    private fun add10000Post() {
+        val postRequest = PostRequest(content = "테스트 게시글입니다.", scope = "PUBLIC")
+        val userId = UUID.fromString("b717ea17-728d-4316-8caf-4965d131b7a8")
+
+        repeat(10_000) {
+            postHandler.save(userId = userId, request = postRequest)
+        }
+    }
+
     private fun add1000Comments(postId: Long) {
         val idsKey = redisKeyProvider.ids()
         val userIds = redisTemplate.opsForSet().members(idsKey)!!.map { UUID.fromString(it) }
@@ -44,10 +53,13 @@ class DataInitializer(
             val myId = UUID.fromString("b65996f0-baa1-4e6a-a707-d57236539e93")
 
             // add post
-            val postId = addPost(myId = myId)
+//            val postId = addPost(myId = myId)
+
+            // add 1000 posts
+            add10000Post()
 
             // add 1000 comments
-            add1000Comments(postId = postId)
+//            add1000Comments(postId = postId)
 
             // add index
             val sql = "CREATE INDEX idx_comment_post_status_id ON comments (post_id, status, comment_id DESC)"
