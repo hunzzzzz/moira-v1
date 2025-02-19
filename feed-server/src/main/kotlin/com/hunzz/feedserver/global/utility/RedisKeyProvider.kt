@@ -8,4 +8,7 @@ class RedisKeyProvider {
     // relation
     fun following(userId: UUID) = "following:$userId"
     fun follower(userId: UUID) = "follower:$userId"
+
+    // post
+    fun latestPosts(userId: UUID) = "latest-post:$userId"
 }

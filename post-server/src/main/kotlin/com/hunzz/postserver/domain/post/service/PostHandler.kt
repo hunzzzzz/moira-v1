@@ -34,10 +34,6 @@ class PostHandler(
         return post
     }
 
-    fun getAllIds(userId: UUID): List<Long> {
-        return postRepository.getAllIds(userId = userId)
-    }
-
     @Transactional
     @UserCache
     fun save(userId: UUID, request: PostRequest): Long {

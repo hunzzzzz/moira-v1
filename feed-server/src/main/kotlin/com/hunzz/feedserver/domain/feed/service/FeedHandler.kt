@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.feedserver.domain.feed.dto.response.AddPostKafkaResponse
 import com.hunzz.feedserver.domain.feed.dto.response.FollowKafkaResponse
 import com.hunzz.feedserver.domain.feed.repository.FeedRepository
-import com.hunzz.feedserver.global.client.PostServerClient
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -16,8 +15,7 @@ class FeedHandler(
     private val feedRedisHandler: FeedRedisHandler,
     private val feedRepository: FeedRepository,
     private val jdbcTemplate: JdbcTemplate,
-    private val objectMapper: ObjectMapper,
-    private val postServerClient: PostServerClient
+    private val objectMapper: ObjectMapper
 ) {
     private fun UUID.toBytes(): ByteArray {
         val byteBuffer = ByteBuffer.allocate(16)
@@ -52,14 +50,14 @@ class FeedHandler(
         val data = objectMapper.readValue(message, FollowKafkaResponse::class.java)
 
         // get postIds
-        val postIds = postServerClient.getPostIds(userId = data.targetId)
+        val postIds = feedRedisHandler.getLatestPostIds(authorId = data.targetId)
 
         // batch insert (with jdbc template)
         val sql = "INSERT INTO feeds (user_id, post_id, author_id) VALUES (?, ?, ?)"
 
         jdbcTemplate.batchUpdate(sql, postIds, 1000) { ps, postId ->
             ps.setBytes(1, data.userId.toBytes())
-            ps.setLong(2, postId)
+            ps.setLong(2, postId.toLong())
             ps.setBytes(3, data.targetId.toBytes())
         }
     }

@@ -15,4 +15,10 @@ class FeedRedisHandler(
 
         return redisTemplate.opsForZSet().range(followerKey, 0, -1) ?: mutableSetOf()
     }
+
+    fun getLatestPostIds(authorId: UUID): MutableSet<String> {
+        val latestPostKey = redisKeyProvider.latestPosts(userId = authorId)
+
+        return redisTemplate.opsForZSet().range(latestPostKey, 0, -1) ?: mutableSetOf()
+    }
 }
