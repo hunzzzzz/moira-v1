@@ -9,10 +9,7 @@ import com.hunzz.feedserver.domain.feed.dto.response.kafka.FollowKafkaResponse
 import com.hunzz.feedserver.domain.feed.repository.FeedRepository
 import com.hunzz.feedserver.global.model.CachedPost
 import com.hunzz.feedserver.global.model.CachedUser
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
 import org.springframework.data.domain.PageRequest
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
@@ -53,6 +50,11 @@ class FeedHandler(
                 contents = listOf()
             )
 
+        // add feed ids into 'read-feed-queue'
+        launch {
+            feedRedisHandler.addFeedIdsIntoReadFeedQueue(feedIds = feedData.map { it.feedId })
+        }
+
         // get user/post/like infos respectively
         val (userInfos, postInfos, likeInfos) = withTimeout(5_000) {
             val userInfosDeferred = async {
@@ -64,7 +66,6 @@ class FeedHandler(
             val likeInfosDeferred = async {
                 feedRedisHandler.getLikeInfo(userId = userId, postIds = feedData.map { it.postId })
             }
-
             awaitAll(userInfosDeferred, postInfosDeferred, likeInfosDeferred)
         }
 

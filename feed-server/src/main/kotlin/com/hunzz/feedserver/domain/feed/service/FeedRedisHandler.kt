@@ -211,4 +211,52 @@ class FeedRedisHandler(
             FeedLikeResponse(likes = likes, hasLike = hasLike)
         }
     }
+
+    fun addFeedIdsIntoReadFeedQueue(feedIds: List<Long>) {
+        val script = """ 
+            local read_feed_queue_key = KEYS[1]
+            local feed_ids = cjson.decode(ARGV[1])
+            
+            -- '읽은 피드' 큐에 데이터 적재
+            for _, feed_id in ipairs(feed_ids) do
+                redis.call('SADD', read_feed_queue_key, feed_id)
+            end
+            
+            return nil
+        """.trimIndent()
+
+        val readFeedQueueKey = redisKeyProvider.readFeedQueue()
+
+        redisTemplate.execute(
+            RedisScript.of(script, String::class.java), // script
+            listOf(readFeedQueueKey), // keys
+            objectMapper.writeValueAsString(feedIds) // argv[1]
+        )
+    }
+
+    fun checkReadFeedQueue(): List<Long> {
+        val script = """
+            local read_feed_queue_key = KEYS[1]
+            local elements = {}
+            
+            while redis.call('SCARD', read_feed_queue_key) > 0 do
+                local element = redis.call('SPOP', read_feed_queue_key)
+                table.insert(elements, element)
+            end
+            
+            return elements
+        """.trimIndent()
+
+        val readFeedQueueKey = redisKeyProvider.readFeedQueue()
+
+        // execute script
+        val result = redisTemplate.execute(
+            RedisScript.of(script, List::class.java), // script
+            listOf(readFeedQueueKey) // keys
+        ).map { it as String }.map { it.toLong() }
+
+        println(result)
+
+        return result
+    }
 }

@@ -24,6 +24,7 @@ class FeedRepositoryImpl(
         return jpaQueryFactory.select(
             Projections.constructor(
                 FeedQueryDslResponse::class.java,
+                feed.id,
                 feed.userId,
                 feed.postId,
                 feed.authorId
