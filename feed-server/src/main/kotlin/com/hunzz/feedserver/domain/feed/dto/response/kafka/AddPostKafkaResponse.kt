@@ -1,4 +1,4 @@
-package com.hunzz.feedserver.domain.feed.dto.response
+package com.hunzz.feedserver.domain.feed.dto.response.kafka
 
 import java.util.*
 

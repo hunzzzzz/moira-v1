@@ -60,3 +60,11 @@ spring:
           filters:
             - RewritePath=/post-server/(?<segment>.*), /$\{segment}
             - JwtAuthorizationFilter
+        # feed server
+        - id: feed-server
+          uri: lb://FEED-SERVER
+          predicates:
+            - Path=/feed-server/feed/**
+          filters:
+            - RewritePath=/feed-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
