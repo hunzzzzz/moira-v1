@@ -1,12 +1,18 @@
 package com.hunzz.feedserver.domain.feed.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.hunzz.feedserver.domain.feed.dto.response.FeedLikeResponse
 import com.hunzz.feedserver.domain.feed.dto.response.FeedResponse
 import com.hunzz.feedserver.domain.feed.dto.response.FeedSliceResponse
 import com.hunzz.feedserver.domain.feed.dto.response.kafka.AddPostKafkaResponse
 import com.hunzz.feedserver.domain.feed.dto.response.kafka.FollowKafkaResponse
 import com.hunzz.feedserver.domain.feed.repository.FeedRepository
-import com.hunzz.feedserver.global.client.PostServerClient
+import com.hunzz.feedserver.global.model.CachedPost
+import com.hunzz.feedserver.global.model.CachedUser
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.springframework.data.domain.PageRequest
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
@@ -20,8 +26,7 @@ class FeedHandler(
     private val feedRedisHandler: FeedRedisHandler,
     private val feedRepository: FeedRepository,
     private val jdbcTemplate: JdbcTemplate,
-    private val objectMapper: ObjectMapper,
-    private val postServerClient: PostServerClient
+    private val objectMapper: ObjectMapper
 ) {
     private fun UUID.toBytes(): ByteArray {
         val byteBuffer = ByteBuffer.allocate(16)
@@ -32,7 +37,7 @@ class FeedHandler(
         return byteBuffer.array()
     }
 
-    fun getFeed(userId: UUID, cursor: Long?): FeedSliceResponse {
+    fun getFeed(userId: UUID, cursor: Long?): FeedSliceResponse = runBlocking {
         // get feed data from db
         val feedData = feedRepository.getFeed(
             pageable = PageRequest.ofSize(5),
@@ -40,24 +45,36 @@ class FeedHandler(
             cursor = cursor
         )
 
+        // if feed is empty
         if (feedData.isEmpty())
-            return FeedSliceResponse(currentCursor = cursor, nextCursor = null, contents = listOf())
+            return@runBlocking FeedSliceResponse(
+                currentCursor = cursor,
+                nextCursor = null,
+                contents = listOf()
+            )
 
-        // get user/post/like infos
-        val userIds = feedData.map { it.userId }
-        val userInfos = feedRedisHandler.getUserInfo(userIds = userIds)
+        // get user/post/like infos respectively
+        val (userInfos, postInfos, likeInfos) = withTimeout(5_000) {
+            val userInfosDeferred = async {
+                feedRedisHandler.getUserInfo(userIds = feedData.map { it.userId })
+            }
+            val postInfosDeferred = async {
+                feedRedisHandler.getPostInfo(postIds = feedData.map { it.postId })
+            }
+            val likeInfosDeferred = async {
+                feedRedisHandler.getLikeInfo(userId = userId, postIds = feedData.map { it.postId })
+            }
 
-        val postIds = feedData.map { it.postId }
-        val postInfos = feedRedisHandler.getPostInfo(postIds = postIds)
-        val likeInfos = feedRedisHandler.getLikeInfo(userId = userId, postIds = postIds)
+            awaitAll(userInfosDeferred, postInfosDeferred, likeInfosDeferred)
+        }
 
         // combine
         val contents = feedData.mapIndexed { i, data ->
             val postId = data.postId
             val authorId = data.authorId
-            val user = userInfos[i]
-            val post = postInfos[i]
-            val like = likeInfos[i]
+            val user = userInfos[i] as CachedUser
+            val post = postInfos[i] as CachedPost
+            val like = likeInfos[i] as FeedLikeResponse
 
             FeedResponse(
                 postId = postId,
@@ -72,7 +89,7 @@ class FeedHandler(
             )
         }
 
-        return FeedSliceResponse(
+        FeedSliceResponse(
             currentCursor = cursor,
             nextCursor = feedData.last().postId,
             contents = contents
