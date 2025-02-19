@@ -1,5 +1,6 @@
 package com.hunzz.postserver.domain.post.service
 
+import com.hunzz.postserver.domain.post.dto.request.AddPostKafkaRequest
 import com.hunzz.postserver.domain.post.dto.request.PostRequest
 import com.hunzz.postserver.domain.post.model.Post
 import com.hunzz.postserver.domain.post.model.PostLikeType
@@ -9,6 +10,7 @@ import com.hunzz.postserver.global.aop.cache.UserCache
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_POST
 import com.hunzz.postserver.global.exception.ErrorCode.POST_NOT_FOUND
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
+import com.hunzz.postserver.global.utility.KafkaProducer
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,6 +18,7 @@ import java.util.*
 
 @Service
 class PostHandler(
+    private val kafkaProducer: KafkaProducer,
     private val postRedisHandler: PostRedisHandler,
     private val postRepository: PostRepository
 ) {
@@ -31,6 +34,10 @@ class PostHandler(
         return post
     }
 
+    fun getAllIds(userId: UUID): List<Long> {
+        return postRepository.getAllIds(userId = userId)
+    }
+
     @Transactional
     @UserCache
     fun save(userId: UUID, request: PostRequest): Long {
@@ -41,6 +48,10 @@ class PostHandler(
             userId = userId
         )
         val postId = postRepository.save(post).id!!
+
+        // send kafka message (to feed-server)
+        val data = AddPostKafkaRequest(authorId = userId, postId = postId)
+        kafkaProducer.send(topic = "add-post", data)
 
         return postId
     }

@@ -39,7 +39,7 @@ class DataInitializer(
         val profile = env.getProperty("spring.profiles.active", String::class.java)
 
         if (ddlAuto == "create" && profile != "test") {
-            val myId = UUID.fromString("c7f045f3-ebaf-4a2a-9149-ec26d628abff")
+            val myId = UUID.fromString("b65996f0-baa1-4e6a-a707-d57236539e93")
 
             // add post
             val postId = addPost(myId = myId)
