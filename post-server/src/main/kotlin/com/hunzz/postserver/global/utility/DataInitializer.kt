@@ -7,6 +7,7 @@ import com.hunzz.postserver.domain.post.service.PostHandler
 import org.springframework.boot.CommandLineRunner
 import org.springframework.core.env.Environment
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -14,6 +15,7 @@ import java.util.*
 class DataInitializer(
     private val commentHandler: CommentHandler,
     private val env: Environment,
+    private val jdbcTemplate: JdbcTemplate,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>,
     private val postHandler: PostHandler
@@ -46,6 +48,10 @@ class DataInitializer(
 
             // add 1000 comments
             add1000Comments(postId = postId)
+
+            // add index
+            val sql = "CREATE INDEX idx_comment_post_status_id ON comments (post_id, status, comment_id DESC)"
+            jdbcTemplate.execute(sql)
         }
     }
 }
