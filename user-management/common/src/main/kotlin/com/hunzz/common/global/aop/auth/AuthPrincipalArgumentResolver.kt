@@ -1,7 +1,7 @@
 package com.hunzz.common.global.aop.auth
 
+import com.hunzz.common.global.utility.AuthCacheManager
 import com.hunzz.common.global.utility.JwtProvider
-import com.hunzz.common.global.utility.UserAuthProvider
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -12,8 +12,8 @@ import org.springframework.web.method.support.ModelAndViewContainer
 
 @Component
 class AuthPrincipalArgumentResolver(
+    private val authCacheManager: AuthCacheManager,
     private val jwtProvider: JwtProvider,
-    private val userAuthProvider: UserAuthProvider
 ) : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter): Boolean {
         return parameter.hasParameterAnnotation(AuthPrincipal::class.java)
@@ -34,7 +34,7 @@ class AuthPrincipalArgumentResolver(
         val email = payload.get("email", String::class.java)
 
         // get user auth from redis
-        val userAuth = userAuthProvider.getUserAuthWithLocalCache(email = email)
+        val userAuth = authCacheManager.getUserAuthWithLocalCache(email = email)
 
         return userAuth
     }

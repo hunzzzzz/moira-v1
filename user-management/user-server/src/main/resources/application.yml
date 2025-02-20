@@ -4,3 +4,7 @@ server:
 spring:
   application:
     name: user-server
+
+gateway:
+  server:
+    url: ${GATEWAY_SERVER_URL}
