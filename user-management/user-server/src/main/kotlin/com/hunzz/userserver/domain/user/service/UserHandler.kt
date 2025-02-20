@@ -15,6 +15,7 @@ import org.springframework.aop.framework.AopContext
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 @Component
@@ -26,16 +27,11 @@ class UserHandler(
 ) {
     private fun proxy() = AopContext.currentProxy() as UserHandler
 
-    private fun isEqualPasswords(password1: String, password2: String) {
-        val condition = password1 == password2
-
-        require(condition) { throw InvalidUserInfoException(DIFFERENT_TWO_PASSWORDS) }
-    }
-
     @Transactional
     fun save(request: SignUpRequest): UUID {
         // validate
-        isEqualPasswords(password1 = request.password!!, password2 = request.password2!!)
+        if (request.password != request.password2)
+            throw InvalidUserInfoException(DIFFERENT_TWO_PASSWORDS)
         userRedisHandler.checkSignupRequest(inputEmail = request.email!!, inputAdminCode = request.adminCode)
 
         // encrypt
@@ -49,7 +45,8 @@ class UserHandler(
                     email = request.email!!,
                     password = encodedPassword,
                     name = request.name!!,
-                    imageUrl = null
+                    imageUrl = null,
+                    thumbnailUrl = null
                 )
             )
 
@@ -61,15 +58,15 @@ class UserHandler(
 
     fun getProfile(userId: UUID, targetId: UUID): UserResponse {
         val user = proxy().getWithLocalCache(userId = targetId)
-        val userRedisInfo = userRedisHandler.getUserRedisInfo(userId = targetId)
+        val relationInfo = userRedisHandler.getRelationInfo(userId = targetId)
 
         return UserResponse(
             id = user.userId,
             status = user.status,
             name = user.name,
-            imageUrl = user.imageUrl,
-            numOfFollowings = userRedisInfo.numOfFollowings,
-            numOfFollowers = userRedisInfo.numOfFollowers,
+            imageUrl = user.thumbnailUrl,
+            numOfFollowings = relationInfo.numOfFollowings,
+            numOfFollowers = relationInfo.numOfFollowers,
             isMyProfile = userId == targetId
         )
     }
@@ -78,7 +75,13 @@ class UserHandler(
         val user = userRepository.findUserProfile(userId = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
-        return CachedUser(userId = userId, status = user.status, name = user.name, imageUrl = user.imageUrl)
+        return CachedUser(
+            userId = userId,
+            status = user.status,
+            name = user.name,
+            imageUrl = user.imageUrl,
+            thumbnailUrl = user.thumbnailUrl
+        )
     }
 
     fun getWithRedisCache(userId: UUID): CachedUser {
@@ -105,5 +108,10 @@ class UserHandler(
         }
 
         return hashMap
+    }
+
+    fun uploadImage(userId: UUID, image: MultipartFile) {
+
+
     }
 }

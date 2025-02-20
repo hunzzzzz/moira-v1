@@ -31,5 +31,8 @@ class User(
     val name: String,
 
     @Column(name = "image_url", nullable = true)
-    var imageUrl: String?
+    var imageUrl: String?,
+
+    @Column(name = "thumbnail_url", nullable = false)
+    val thumbnailUrl: String?
 ) : BaseTime()

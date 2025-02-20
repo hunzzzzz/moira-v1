@@ -117,7 +117,7 @@ class UserRedisHandler(
         )
     }
 
-    fun getUserRedisInfo(userId: UUID): UserRedisResponse {
+    fun getRelationInfo(userId: UUID): UserRedisResponse {
         val followingKey = redisKeyProvider.following(userId = userId)
         val followerKey = redisKeyProvider.follower(userId = userId)
 

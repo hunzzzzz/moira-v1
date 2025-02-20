@@ -7,9 +7,12 @@ data class FeedResponse(
     val postScope: String,
     val postStatus: String,
     val postContent: String,
+    val postImageUrl: String?,
+    val postThumbnailUrl: String?,
     val userId: UUID,
     val userName: String,
     val userImageUrl: String?,
+    val userThumbnailUrl: String?,
     val numOfLikes: Long,
     val hasLike: Boolean
 )

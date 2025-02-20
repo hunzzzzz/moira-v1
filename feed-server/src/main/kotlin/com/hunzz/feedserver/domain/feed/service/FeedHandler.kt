@@ -82,9 +82,12 @@ class FeedHandler(
                 postStatus = post.status,
                 postScope = post.scope,
                 postContent = post.content,
+                postImageUrl = post.imageUrl,
+                postThumbnailUrl = post.thumbnailUrl,
                 userId = authorId,
                 userName = user.name,
                 userImageUrl = user.imageUrl,
+                userThumbnailUrl = user.thumbnailUrl,
                 numOfLikes = like.likes,
                 hasLike = like.hasLike
             )

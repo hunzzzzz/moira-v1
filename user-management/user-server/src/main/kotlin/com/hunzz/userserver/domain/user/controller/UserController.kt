@@ -5,10 +5,8 @@ import com.hunzz.common.global.aop.auth.AuthPrincipal
 import com.hunzz.userserver.domain.user.dto.response.UserResponse
 import com.hunzz.userserver.domain.user.service.UserHandler
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 @RestController
@@ -22,6 +20,16 @@ class UserController(
         @PathVariable targetId: UUID
     ): ResponseEntity<UserResponse> {
         val body = userHandler.getProfile(userId = userAuth.userId, targetId = targetId)
+
+        return ResponseEntity.ok(body)
+    }
+
+    @PostMapping("/image")
+    fun uploadImage(
+        @AuthPrincipal userAuth: UserAuth,
+        @RequestPart image: MultipartFile
+    ): ResponseEntity<Unit> {
+        val body = userHandler.uploadImage(userId = userAuth.userId, image = image)
 
         return ResponseEntity.ok(body)
     }

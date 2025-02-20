@@ -4,7 +4,3 @@ server:
 spring:
   application:
     name: image-server
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB

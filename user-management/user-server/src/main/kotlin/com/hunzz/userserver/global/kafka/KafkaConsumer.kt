@@ -20,7 +20,7 @@ class KafkaConsumer(
     }
 
     @KafkaListener(topics = ["add-users-cache"], groupId = "user-server-add-users-cache")
-    fun follow(message: String) {
+    fun addUsersCache(message: String) {
         val userIds = objectMapper.readValue(message, object : TypeReference<List<UUID>>() {})
 
         // add user cache into redis

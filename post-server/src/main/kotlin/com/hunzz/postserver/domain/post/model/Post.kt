@@ -19,6 +19,12 @@ class Post(
     @Column(name = "content", nullable = false, length = 500)
     var content: String,
 
+    @Column(name = "image_url", nullable = true)
+    val imageUrl: String?,
+
+    @Column(name = "thumbnail_url", nullable = true)
+    val thumbnailUrl: String?,
+
     @Column(name = "user_id", nullable = false)
     val userId: UUID
 ) : BaseTime() {

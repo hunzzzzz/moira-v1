@@ -47,7 +47,9 @@ class PostHandler(
             postId = post.id!!,
             scope = post.scope,
             status = post.status,
-            content = post.content
+            content = post.content,
+            imageUrl = post.imageUrl,
+            thumbnailUrl = post.thumbnailUrl
         )
     }
 
@@ -84,7 +86,9 @@ class PostHandler(
         val post = Post(
             scope = request.scope.let { PostScope.valueOf(it!!) },
             content = request.content!!,
-            userId = userId
+            userId = userId,
+            imageUrl = null, // TODO
+            thumbnailUrl = null // TODO
         )
         val postId = postRepository.save(post).id!!
 
