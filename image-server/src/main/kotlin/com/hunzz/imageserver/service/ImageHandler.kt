@@ -55,10 +55,12 @@ class ImageHandler(
         )
     }
 
-    fun save(file: MultipartFile): ImageResponse {
+    fun save(image: MultipartFile): ImageResponse {
         // settings
         val imageId = UUID.randomUUID()
-        val originalImage = ImageIO.read(file.inputStream)
+        val originalImage = ImageIO.read(image.inputStream)
+
+        println(originalImage) // null이 찍힘
 
         // upload original image
         val originalImageFileName = "${imageId}.jpg"

@@ -17,13 +17,13 @@ class DataInitializer(
         val profile = env.getProperty("spring.profiles.active", String::class.java)
 
         if (ddlAuto == "create" && profile != "test") {
-            // set admin code
-            val adminCodeKey = redisKeyProvider.adminCode()
-            redisTemplate.opsForValue().set(adminCodeKey, "admin_code")
-
             // delete all data in redis
             val keys = redisTemplate.keys("*")
             redisTemplate.delete(keys)
+
+            // set admin code
+            val adminCodeKey = redisKeyProvider.adminCode()
+            redisTemplate.opsForValue().set(adminCodeKey, "admin_code")
         }
     }
 }

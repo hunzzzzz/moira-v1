@@ -16,9 +16,9 @@ class ImageController(
 ) {
     @PostMapping
     fun upload(
-        @RequestPart file: MultipartFile
+        @RequestPart image: MultipartFile
     ): ResponseEntity<ImageResponse> {
-        val body = imageHandler.save(file = file)
+        val body = imageHandler.save(image = image)
 
         return ResponseEntity.ok(body)
     }
