@@ -21,8 +21,14 @@ repositories {
 extra["springCloudVersion"] = "2024.0.0"
 
 dependencies {
+	// aws s3
+	implementation("com.amazonaws:aws-java-sdk-s3:1.12.781")
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	// image
+	implementation("net.coobird:thumbnailator:0.4.20")
+	// spring boot
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	// spring cloud
 	implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
 	implementation("org.springframework.cloud:spring-cloud-starter-bus-kafka")
