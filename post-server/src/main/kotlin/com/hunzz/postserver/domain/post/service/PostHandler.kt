@@ -2,6 +2,7 @@ package com.hunzz.postserver.domain.post.service
 
 import com.hunzz.postserver.domain.post.dto.request.AddPostKafkaRequest
 import com.hunzz.postserver.domain.post.dto.request.PostRequest
+import com.hunzz.postserver.domain.post.dto.response.ImageInfo
 import com.hunzz.postserver.domain.post.model.CachedPost
 import com.hunzz.postserver.domain.post.model.Post
 import com.hunzz.postserver.domain.post.model.PostLikeType
@@ -18,11 +19,13 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 @Service
 class PostHandler(
     private val kafkaProducer: KafkaProducer,
+    private val imageSender: ImageSender,
     private val postRedisHandler: PostRedisHandler,
     private val postRepository: PostRepository
 ) {
@@ -81,14 +84,19 @@ class PostHandler(
 
     @Transactional
     @UserCache
-    fun save(userId: UUID, request: PostRequest): Long {
+    fun save(userId: UUID, request: PostRequest, image: MultipartFile?): Long {
+        // send image request
+        var imageInfo: ImageInfo? = null
+        if (image != null)
+            imageInfo = imageSender.sendRequest(image = image)
+
         // save 'post' in db
         val post = Post(
             scope = request.scope.let { PostScope.valueOf(it!!) },
             content = request.content!!,
             userId = userId,
-            imageUrl = null, // TODO
-            thumbnailUrl = null // TODO
+            imageUrl = imageInfo?.imageUrl,
+            thumbnailUrl = imageInfo?.thumbnailUrl
         )
         val postId = postRepository.save(post).id!!
 

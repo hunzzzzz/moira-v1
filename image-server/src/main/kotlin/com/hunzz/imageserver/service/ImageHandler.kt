@@ -60,8 +60,6 @@ class ImageHandler(
         val imageId = UUID.randomUUID()
         val originalImage = ImageIO.read(image.inputStream)
 
-        println(originalImage) // null이 찍힘
-
         // upload original image
         val originalImageFileName = "${imageId}.jpg"
         uploadToS3(fileName = originalImageFileName, image = originalImage, scale = 1.0)

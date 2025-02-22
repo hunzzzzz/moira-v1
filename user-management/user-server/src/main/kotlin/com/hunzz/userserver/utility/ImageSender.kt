@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 
 @Component
-class ImageHandler(
+class ImageSender(
     @Value("\${gateway.server.url}")
     val gatewayServerUrl: String
 ) {

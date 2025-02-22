@@ -11,7 +11,7 @@ import com.hunzz.common.global.utility.KafkaProducer
 import com.hunzz.common.global.utility.PasswordEncoder
 import com.hunzz.userserver.dto.request.SignUpRequest
 import com.hunzz.userserver.dto.response.UserResponse
-import com.hunzz.userserver.utility.ImageHandler
+import com.hunzz.userserver.utility.ImageSender
 import com.hunzz.userserver.utility.UserCacheManager
 import com.hunzz.userserver.utility.UserRedisHandler
 import org.springframework.data.repository.findByIdOrNull
@@ -22,7 +22,7 @@ import java.util.*
 
 @Component
 class UserHandler(
-    private val imageHandler: ImageHandler,
+    private val imageSender: ImageSender,
     private val kafkaProducer: KafkaProducer,
     private val passwordEncoder: PasswordEncoder,
     private val userCacheManager: UserCacheManager,
@@ -79,7 +79,7 @@ class UserHandler(
     @Transactional
     fun uploadImage(userId: UUID, image: MultipartFile) {
         // send request (to image-server)
-        val imageInfos = imageHandler.sendRequest(image = image)
+        val imageInfos = imageSender.sendRequest(image = image)
 
         // update
         val user = get(userId = userId)
