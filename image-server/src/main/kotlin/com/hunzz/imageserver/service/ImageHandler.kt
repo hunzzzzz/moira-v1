@@ -3,16 +3,16 @@ package com.hunzz.imageserver.service
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
-import com.hunzz.imageserver.dto.ImageResponse
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.hunzz.imageserver.dto.KafkaImageRequest
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.geometry.Positions
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
-import org.springframework.web.multipart.MultipartFile
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.util.*
 import javax.imageio.ImageIO
 
 @Component
@@ -21,13 +21,8 @@ class ImageHandler(
     private val bucketName: String,
 
     private val amazonS3: AmazonS3,
+    private val objectMapper: ObjectMapper
 ) {
-    private fun getImageUrl(imageId: UUID, isThumbnail: Boolean = false): String {
-        val fileName = if (isThumbnail) "${imageId}-thumbnail.jpg" else "${imageId}.jpg"
-
-        return "https://${bucketName}.s3.amazonaws.com/$fileName"
-    }
-
     private fun uploadToS3(fileName: String, image: BufferedImage, scale: Double, isThumbnail: Boolean = false) {
         // settings
         val outputStream = ByteArrayOutputStream()
@@ -55,23 +50,13 @@ class ImageHandler(
         )
     }
 
-    fun save(image: MultipartFile): ImageResponse {
-        // settings
-        val imageId = UUID.randomUUID()
-        val originalImage = ImageIO.read(image.inputStream)
+    @KafkaListener(topics = ["add-image"], groupId = "image-server-add-image")
+    fun save(message: String) {
+        val data = objectMapper.readValue(message, KafkaImageRequest::class.java)
 
-        // upload original image
-        val originalImageFileName = "${imageId}.jpg"
-        uploadToS3(fileName = originalImageFileName, image = originalImage, scale = 1.0)
+        val originalImage = ImageIO.read(ByteArrayInputStream(data.image))
 
-        // upload thumbnail
-        val thumbnailImageFileName = "${imageId}-thumbnail.jpg"
-        uploadToS3(fileName = thumbnailImageFileName, image = originalImage, scale = 0.25)
-
-        return ImageResponse(
-            imageId = imageId,
-            imageUrl = getImageUrl(imageId = imageId),
-            thumbnailUrl = getImageUrl(imageId = imageId, isThumbnail = true)
-        )
+        uploadToS3(fileName = data.originalFileName, image = originalImage, scale = 1.0)
+        uploadToS3(fileName = data.thumbnailFileName, image = originalImage, scale = 0.25, isThumbnail = true)
     }
 }

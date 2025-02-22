@@ -1,7 +1,7 @@
 package com.hunzz.postserver.domain.post.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hunzz.postserver.domain.post.dto.request.AddPostKafkaRequest
+import com.hunzz.postserver.domain.post.dto.request.KafkaPostRequest
 import com.hunzz.postserver.domain.post.model.CachedPost
 import com.hunzz.postserver.domain.post.model.PostLikeType
 import com.hunzz.postserver.global.exception.ErrorCode.ALREADY_LIKED
@@ -26,7 +26,7 @@ class PostRedisHandler(
     @KafkaListener(topics = ["add-post"], groupId = "post-server-add-post")
     fun addPost(message: String) {
         // settings
-        val data = objectMapper.readValue(message, AddPostKafkaRequest::class.java)
+        val data = objectMapper.readValue(message, KafkaPostRequest::class.java)
 
         // settings
         val script = """
