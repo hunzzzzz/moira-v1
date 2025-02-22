@@ -13,6 +13,6 @@ interface UserRepository : JpaRepository<User, UUID> {
     @Query("SELECT new com.hunzz.common.domain.user.model.UserAuth(u.id, u.role, u.email, u.password) FROM User u WHERE u.email = :email")
     fun findUserAuth(email: String): UserAuth?
 
-    @Query("SELECT new com.hunzz.common.domain.user.model.CachedUser(u.id, u.status, u.name, u.imageUrl) FROM User u WHERE u.id = :userId")
+    @Query("SELECT new com.hunzz.common.domain.user.model.CachedUser(u.id, u.status, u.name, u.imageUrl, u.thumbnailUrl) FROM User u WHERE u.id = :userId")
     fun findUserProfile(userId: UUID): CachedUser?
 }

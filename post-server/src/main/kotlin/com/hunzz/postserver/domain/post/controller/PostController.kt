@@ -7,6 +7,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 @RestController
@@ -17,9 +18,10 @@ class PostController(
     @PostMapping
     fun save(
         @AuthPrincipal userId: UUID,
-        @Valid @RequestBody request: PostRequest
+        @Valid @RequestPart request: PostRequest,
+        @RequestPart(required = false) image: MultipartFile?
     ): ResponseEntity<Long> {
-        val body = postHandler.save(userId = userId, request = request)
+        val body = postHandler.save(userId = userId, request = request, image = image)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(body)
     }

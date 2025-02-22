@@ -255,8 +255,6 @@ class FeedRedisHandler(
             listOf(readFeedQueueKey) // keys
         ).map { it as String }.map { it.toLong() }
 
-        println(result)
-
         return result
     }
 }

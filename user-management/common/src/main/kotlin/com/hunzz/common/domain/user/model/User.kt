@@ -31,5 +31,13 @@ class User(
     val name: String,
 
     @Column(name = "image_url", nullable = true)
-    var imageUrl: String?
-) : BaseTime()
+    var imageUrl: String? = null,
+
+    @Column(name = "thumbnail_url", nullable = true)
+    var thumbnailUrl: String? = null
+) : BaseTime() {
+    fun updateImage(imageUrl: String, thumbnailUrl: String) {
+        this.imageUrl = imageUrl
+        this.thumbnailUrl = thumbnailUrl
+    }
+}

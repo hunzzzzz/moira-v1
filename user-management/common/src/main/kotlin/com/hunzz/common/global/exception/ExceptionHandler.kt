@@ -1,5 +1,6 @@
 package com.hunzz.common.global.exception
 
+import com.hunzz.common.global.exception.custom.InternalSystemException
 import com.hunzz.common.global.exception.custom.InvalidAdminRequestException
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
 import org.springframework.http.HttpStatus
@@ -27,4 +28,10 @@ class ExceptionHandler {
     @ExceptionHandler(InvalidAdminRequestException::class)
     fun handleInvalidAdminRequestException(e: InvalidAdminRequestException) =
         ErrorResponse(message = e.message!!, statusCode = HttpStatus.BAD_REQUEST)
+
+    // 시스템 관련 에러
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(InternalSystemException::class)
+    fun handleInternalSystemException(e: InternalSystemException) =
+        ErrorResponse(message = e.message!!, statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
 }

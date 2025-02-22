@@ -22,9 +22,7 @@ import java.util.*
 @Component
 class CommentHandler(
     private val commentRedisHandler: CommentRedisHandler,
-    private val commentRepository: CommentRepository,
-    private val objectMapper: ObjectMapper,
-    private val userServerClient: UserServerClient
+    private val commentRepository: CommentRepository
 ) {
     private fun validateComment(userId: UUID, postId: Long, comment: Comment) {
         if (userId != comment.userId)
@@ -79,7 +77,8 @@ class CommentHandler(
                 content = comment.content,
                 userId = comment.userId,
                 userName = userInfo.name,
-                userImageUrl = userInfo.imageUrl
+                userImageUrl = userInfo.imageUrl,
+                userThumbnailUrl = userInfo.thumbnailUrl
             )
         }
 

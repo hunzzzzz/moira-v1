@@ -28,6 +28,7 @@ spring:
           password: ${CONFIG_SERVER_GIT_PASSWORD}
           default-label: main
           search-paths:
+            - 'aws'
             - 'database'
             - 'encrypt'
             - 'eureka'

@@ -82,9 +82,12 @@ class FeedHandler(
                 postStatus = post.status,
                 postScope = post.scope,
                 postContent = post.content,
+                postImageUrl = post.imageUrl,
+                postThumbnailUrl = post.thumbnailUrl,
                 userId = authorId,
                 userName = user.name,
                 userImageUrl = user.imageUrl,
+                userThumbnailUrl = user.thumbnailUrl,
                 numOfLikes = like.likes,
                 hasLike = like.hasLike
             )
@@ -102,8 +105,9 @@ class FeedHandler(
     fun whenAddPost(message: String) {
         val data = objectMapper.readValue(message, AddPostKafkaResponse::class.java)
 
-        // get followers
+        // get followers (post should be also added to itself feed)
         val followers = feedRedisHandler.getFollowers(authorId = data.authorId)
+        followers.add(data.authorId.toString())
 
         // batch insert (with jdbc template)
         val sql = "INSERT INTO feeds (user_id, post_id, author_id) VALUES (?, ?, ?)"

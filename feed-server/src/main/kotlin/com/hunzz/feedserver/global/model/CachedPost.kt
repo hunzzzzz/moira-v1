@@ -5,4 +5,6 @@ data class CachedPost(
     val scope: String,
     val status: String,
     val content: String,
+    val imageUrl: String?,
+    val thumbnailUrl: String?
 )

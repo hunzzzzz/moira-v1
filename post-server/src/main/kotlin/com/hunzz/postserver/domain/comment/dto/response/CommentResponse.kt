@@ -9,5 +9,6 @@ data class CommentResponse(
     val content: String,
     val userId: UUID,
     val userName: String,
-    val userImageUrl: String?
+    val userImageUrl: String?,
+    val userThumbnailUrl: String?
 )
