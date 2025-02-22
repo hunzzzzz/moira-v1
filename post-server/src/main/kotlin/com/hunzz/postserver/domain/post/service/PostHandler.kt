@@ -95,6 +95,7 @@ class PostHandler(
 
     @Transactional
     @UserCache
+    @PostCache
     fun save(userId: UUID, request: PostRequest, image: MultipartFile?): Long {
         // send kafka message (to image server / save images)
         val (originalFileName, thumbnailFileName) = getImageFileNames()
@@ -123,9 +124,6 @@ class PostHandler(
             val data = KafkaPostRequest(authorId = userId, postId = postId)
             kafkaProducer.send(topic = "add-post", data)
         }
-
-        // send kafka message (to post-server / add post cache)
-        kafkaProducer.send(topic = "add-post-cache", data = postId)
 
         return postId
     }
