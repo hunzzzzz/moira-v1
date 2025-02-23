@@ -1,18 +1,18 @@
 package com.hunzz.postserver.domain.comment.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.postserver.domain.comment.dto.request.CommentRequest
+import com.hunzz.postserver.domain.comment.dto.request.KafkaCommentRequest
 import com.hunzz.postserver.domain.comment.dto.response.CommentResponse
 import com.hunzz.postserver.domain.comment.dto.response.CommentSliceResponse
 import com.hunzz.postserver.domain.comment.model.Comment
 import com.hunzz.postserver.domain.comment.repository.CommentRepository
 import com.hunzz.postserver.global.aop.cache.PostCache
 import com.hunzz.postserver.global.aop.cache.UserCache
-import com.hunzz.postserver.global.client.UserServerClient
 import com.hunzz.postserver.global.exception.ErrorCode
 import com.hunzz.postserver.global.exception.ErrorCode.CANNOT_UPDATE_OTHERS_COMMENT
 import com.hunzz.postserver.global.exception.ErrorCode.COMMENT_NOT_BELONGS_TO_POST
 import com.hunzz.postserver.global.exception.custom.InvalidPostInfoException
+import com.hunzz.postserver.global.utility.KafkaProducer
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
@@ -22,20 +22,15 @@ import java.util.*
 @Component
 class CommentHandler(
     private val commentRedisHandler: CommentRedisHandler,
-    private val commentRepository: CommentRepository
+    private val commentRepository: CommentRepository,
+    private val kafkaProducer: KafkaProducer
 ) {
-    private fun validateComment(userId: UUID, postId: Long, comment: Comment) {
-        if (userId != comment.userId)
-            throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_COMMENT)
-        if (postId != comment.postId)
-            throw InvalidPostInfoException(COMMENT_NOT_BELONGS_TO_POST)
-    }
-
     @Transactional
     @UserCache
     @PostCache
     fun add(userId: UUID, postId: Long, request: CommentRequest): Long {
-        commentRepository.save(
+        // save
+        val comment = commentRepository.save(
             Comment(
                 content = request.content!!,
                 userId = userId,
@@ -43,15 +38,19 @@ class CommentHandler(
             )
         )
 
+        // send kafka message (to post-server)
+        val kafkaCommentRequest = KafkaCommentRequest(
+            postAuthorId = UUID.randomUUID(), // TODO
+            commentAuthorId = userId,
+            postId = postId,
+            commentId = comment.id!!
+        )
+        kafkaProducer.send("fill-post-author-id", data = kafkaCommentRequest)
+
         return postId
     }
 
-    fun get(commentId: Long): Comment {
-        val comment = commentRepository.findByIdOrNull(id = commentId)
-            ?: throw InvalidPostInfoException(ErrorCode.COMMENT_NOT_FOUND)
-
-        return comment
-    }
+    // ------------------------------------------------------------------------- //
 
     fun getAll(postId: Long, cursor: Long?): CommentSliceResponse {
         val pageable = PageRequest.ofSize(10)
@@ -89,16 +88,19 @@ class CommentHandler(
         )
     }
 
-    @Transactional
-    fun update(userId: UUID, postId: Long, commentId: Long, request: CommentRequest) {
-        // get comment
-        val comment = get(commentId = commentId)
+    // ------------------------------------------------------------------------- //
+    private fun get(commentId: Long): Comment {
+        val comment = commentRepository.findByIdOrNull(id = commentId)
+            ?: throw InvalidPostInfoException(ErrorCode.COMMENT_NOT_FOUND)
 
-        // validate
-        validateComment(userId = userId, postId = postId, comment = comment)
+        return comment
+    }
 
-        // update
-        comment.update(request = request)
+    private fun validateComment(userId: UUID, postId: Long, comment: Comment) {
+        if (userId != comment.userId)
+            throw InvalidPostInfoException(CANNOT_UPDATE_OTHERS_COMMENT)
+        if (postId != comment.postId)
+            throw InvalidPostInfoException(COMMENT_NOT_BELONGS_TO_POST)
     }
 
     @Transactional

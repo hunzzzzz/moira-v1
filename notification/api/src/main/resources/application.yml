@@ -4,7 +4,3 @@ server:
 spring:
   application:
     name: notification-server
-
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/moira

@@ -41,6 +41,10 @@ class PostHandler(
         return post
     }
 
+    fun getAuthorIdFromPostId(postId: Long): UUID {
+        return postRepository.getUserIdFromPostId(postId = postId)
+    }
+
     fun getCachedPost(postId: Long): CachedPost {
         val post = get(postId = postId)
 
