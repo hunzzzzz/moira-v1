@@ -1,9 +1,9 @@
 package com.hunzz.consumer.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hunzz.consumer.dto.KafkaCommentRequest
 import com.hunzz.common.model.CommentNotification
 import com.hunzz.common.repository.NotificationRepository
+import com.hunzz.consumer.dto.KafkaCommentRequest
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
@@ -16,13 +16,14 @@ class CommentTask(
     fun addComment(message: String) {
         val data = objectMapper.readValue(message, KafkaCommentRequest::class.java)
 
-        notificationRepository.save(
-            CommentNotification(
-                postAuthorId = data.postAuthorId,
-                commentAuthorId = data.commentAuthorId,
-                postId = data.postId,
-                commentId = data.commentId,
+        if (data.postAuthorId != data.commentAuthorId)
+            notificationRepository.save(
+                CommentNotification(
+                    postAuthorId = data.postAuthorId,
+                    commentAuthorId = data.commentAuthorId,
+                    postId = data.postId,
+                    commentId = data.commentId,
+                )
             )
-        )
     }
 }
