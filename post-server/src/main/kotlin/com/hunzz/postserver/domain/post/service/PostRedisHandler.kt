@@ -75,24 +75,26 @@ class PostRedisHandler(
     }
 
     fun like(userId: UUID, postId: Long, type: PostLikeType) {
-        // settings
+        // 세팅
         val script = when (type) {
             PostLikeType.LIKE -> redisScriptProvider.like()
             PostLikeType.UNLIKE -> redisScriptProvider.unlike()
         }
         val likeKey = redisKeyProvider.like(userId = userId)
         val likeCountKey = redisKeyProvider.likeCount()
+        val likeNotificationKey = redisKeyProvider.likeNotification(postId = postId)
         val currentTime = System.currentTimeMillis()
 
-        // execute script
+        // 스크립트 실행
         val result = redisTemplate.execute(
-            RedisScript.of(script, String::class.java), // script
-            listOf(likeKey, likeCountKey), // keys
-            postId.toString(), // argv[1]
-            currentTime.toString() // argv[2]
+            RedisScript.of(script, String::class.java),
+            listOf(likeKey, likeCountKey, likeNotificationKey),
+            postId.toString(),
+            userId.toString(),
+            currentTime.toString()
         )
 
-        // validate
+        // 검증
         when (result) {
             ALREADY_LIKED.name -> throw InvalidPostInfoException(ALREADY_LIKED)
             ALREADY_UNLIKED.name -> throw InvalidPostInfoException(ALREADY_UNLIKED)

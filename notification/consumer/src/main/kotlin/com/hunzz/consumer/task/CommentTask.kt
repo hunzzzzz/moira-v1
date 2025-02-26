@@ -13,7 +13,7 @@ class CommentTask(
     private val notificationRepository: NotificationRepository
 ) {
     @KafkaListener(topics = ["add-comment"], groupId = "notification-server-add-comment")
-    fun addComment(message: String) {
+    fun comment(message: String) {
         val data = objectMapper.readValue(message, KafkaCommentRequest::class.java)
 
         if (data.postAuthorId != data.commentAuthorId)
