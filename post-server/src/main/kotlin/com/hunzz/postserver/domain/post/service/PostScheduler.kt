@@ -21,7 +21,7 @@ class PostScheduler(
     private val redisScriptProvider: RedisScriptProvider,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
-    @Scheduled(fixedRate = 1000 * 10) // 1분마다 실행
+    @Scheduled(fixedRate = 1000 * 60) // 1분마다 실행
     fun processLikeNotification() {
         // post:*:like-notification 형태의 키를 조회
         val keys = redisTemplate.keys("post:*:like-notification")
