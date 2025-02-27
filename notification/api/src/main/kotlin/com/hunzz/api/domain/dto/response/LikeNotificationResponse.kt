@@ -8,8 +8,11 @@ data class LikeNotificationResponse(
     override val type: NotificationType,
     override val createdAt: LocalDateTime,
 
+    val userId: String,
     val userName: String,
     val userImageUrl: String?,
+
+    val postId: Long,
     val postImageUrl: String?,
     val numOfLikes: Long
 ) : NotificationResponse(id = id, type = type, createdAt = createdAt)

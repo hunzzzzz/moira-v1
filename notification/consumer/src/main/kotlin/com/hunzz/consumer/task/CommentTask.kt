@@ -16,14 +16,13 @@ class CommentTask(
     fun comment(message: String) {
         val data = objectMapper.readValue(message, KafkaCommentRequest::class.java)
 
-        if (data.postAuthorId != data.commentAuthorId)
-            notificationRepository.save(
-                CommentNotification(
-                    postAuthorId = data.postAuthorId,
-                    commentAuthorId = data.commentAuthorId,
-                    postId = data.postId,
-                    commentId = data.commentId,
-                )
+        notificationRepository.save(
+            CommentNotification(
+                postAuthorId = data.postAuthorId,
+                commentAuthorId = data.commentAuthorId,
+                postId = data.postId,
+                commentId = data.commentId,
             )
+        )
     }
 }

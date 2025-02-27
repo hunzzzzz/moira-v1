@@ -8,6 +8,7 @@ data class FollowNotificationResponse(
     override val type: NotificationType,
     override val createdAt: LocalDateTime,
 
+    val userId: String,
     val userName: String,
     val userImageUrl: String?,
     val isFollowing: Boolean
