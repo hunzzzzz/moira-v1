@@ -68,3 +68,11 @@ spring:
           filters:
             - RewritePath=/feed-server/(?<segment>.*), /$\{segment}
             - JwtAuthorizationFilter
+        # notification server
+        - id: notification-server
+          uri: lb://NOTIFICATION-SERVER
+          predicates:
+            - Path=/notification-server/notifications/**
+          filters:
+            - RewritePath=/notification-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter

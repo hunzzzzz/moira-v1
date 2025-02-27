@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 @Document(collection = "notifications")
 abstract class Notification(
     @Id
-    val id: String = ObjectId().toString(),
+    open val id: ObjectId,
     val userId: String,
     val type: NotificationType,
     val createdAt: LocalDateTime = LocalDateTime.now(),
