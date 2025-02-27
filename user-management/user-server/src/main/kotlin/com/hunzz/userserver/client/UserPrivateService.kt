@@ -7,8 +7,12 @@ import java.util.*
 
 @Service
 class UserPrivateService(
-    private val userCacheManager: com.hunzz.userserver.utility.UserCacheManager
+    private val userCacheManager: UserCacheManager
 ) {
+    fun get(userId: UUID): CachedUser {
+        return userCacheManager.getWithLocalCache(userId = userId)
+    }
+
     fun getAll(missingIds: List<UUID>): HashMap<UUID, CachedUser> {
         val hashMap = hashMapOf<UUID, CachedUser>()
 

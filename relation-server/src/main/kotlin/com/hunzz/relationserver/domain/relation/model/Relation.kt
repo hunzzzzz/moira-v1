@@ -1,5 +1,6 @@
 package com.hunzz.relationserver.domain.relation.model
 
+import com.hunzz.relationserver.global.model.BaseTime
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.IdClass
@@ -15,4 +16,4 @@ class Relation(
 
     @Id
     val targetId: UUID
-)
+) : BaseTime()

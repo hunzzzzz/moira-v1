@@ -36,18 +36,6 @@ class CommentController(
         return ResponseEntity.ok(body)
     }
 
-    @PutMapping("/{commentId}")
-    fun update(
-        @AuthPrincipal userId: UUID,
-        @PathVariable postId: Long,
-        @PathVariable commentId: Long,
-        @Valid @RequestBody request: CommentRequest
-    ): ResponseEntity<Unit> {
-        val body = commentHandler.update(userId = userId, postId = postId, commentId = commentId, request = request)
-
-        return ResponseEntity.ok(body)
-    }
-
     @DeleteMapping("/{commentId}")
     fun delete(
         @AuthPrincipal userId: UUID,

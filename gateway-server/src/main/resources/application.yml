@@ -68,10 +68,11 @@ spring:
           filters:
             - RewritePath=/feed-server/(?<segment>.*), /$\{segment}
             - JwtAuthorizationFilter
-        # image server (without auth)
-        - id: image-server
-          uri: lb://IMAGE-SERVER
+        # notification server
+        - id: notification-server
+          uri: lb://NOTIFICATION-SERVER
           predicates:
-            - Path=/image-server/images/**
+            - Path=/notification-server/notifications/**
           filters:
-            - RewritePath=/image-server/(?<segment>.*), /$\{segment}
+            - RewritePath=/notification-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter

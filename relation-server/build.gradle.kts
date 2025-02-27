@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.hunzz"
-version = "2.2.0"
+version = "2."
 
 java {
     toolchain {

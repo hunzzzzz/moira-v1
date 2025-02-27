@@ -36,6 +36,7 @@ dependencies {
     // kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     // queryDsl
     implementation("com.querydsl:querydsl-jpa:${property("queryDslVersion")}:jakarta")
     kapt("com.querydsl:querydsl-apt:${property("queryDslVersion")}:jakarta")

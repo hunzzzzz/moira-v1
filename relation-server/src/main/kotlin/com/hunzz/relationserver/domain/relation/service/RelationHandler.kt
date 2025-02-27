@@ -1,6 +1,6 @@
 package com.hunzz.relationserver.domain.relation.service
 
-import com.hunzz.relationserver.domain.relation.dto.request.FollowKafkaRequest
+import com.hunzz.relationserver.domain.relation.dto.request.KafkaFollowRequest
 import com.hunzz.relationserver.domain.relation.dto.response.FollowSliceResponse
 import com.hunzz.relationserver.domain.relation.model.RelationType
 import com.hunzz.relationserver.global.exception.ErrorCode.CANNOT_FOLLOW_ITSELF
@@ -22,17 +22,18 @@ class RelationHandler(
 
     @Transactional
     fun follow(userId: UUID, targetId: UUID) {
-        // validate
+        // 검증
         if (userId == targetId) throw InvalidRelationException(CANNOT_FOLLOW_ITSELF)
-
         relationRedisScriptHandler.checkFollowRequest(userId = userId, targetId = targetId)
 
-        // save relation info in redis
+        // Redis에 팔로우 정보 저장
         relationRedisScriptHandler.follow(userId = userId, targetId = targetId)
 
-        // send kafka-message (to feed-server)
-        val data = FollowKafkaRequest(userId = userId, targetId = targetId)
-        kafkaProducer.send(topic = "follow", data = data)
+        // Kafka 메시지 전송 (to 피드 서버, 알림 서버)
+        kafkaProducer.send(
+            topic = "follow",
+            data = KafkaFollowRequest(userId = userId, targetId = targetId)
+        )
     }
 
     @Transactional
@@ -46,7 +47,7 @@ class RelationHandler(
         relationRedisScriptHandler.unfollow(userId = userId, targetId = targetId)
 
         // send kafka-message (to feed-server)
-        val data = FollowKafkaRequest(userId = userId, targetId = targetId)
+        val data = KafkaFollowRequest(userId = userId, targetId = targetId)
         kafkaProducer.send(topic = "unfollow", data = data)
     }
 

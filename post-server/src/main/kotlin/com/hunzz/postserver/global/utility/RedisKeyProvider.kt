@@ -15,4 +15,5 @@ class RedisKeyProvider {
     fun latestPosts(userId: UUID) = "latest-post:$userId"
     fun like(userId: UUID) = "like:$userId"
     fun likeCount() = "likes"
+    fun likeNotification(postId: Long) = "post:$postId:like-notification"
 }

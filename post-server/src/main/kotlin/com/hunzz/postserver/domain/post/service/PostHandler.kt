@@ -41,6 +41,10 @@ class PostHandler(
         return post
     }
 
+    fun getAuthorIdFromPostId(postId: Long): UUID {
+        return postRepository.getUserIdFromPostId(postId = postId)
+    }
+
     fun getCachedPost(postId: Long): CachedPost {
         val post = get(postId = postId)
 
@@ -128,6 +132,8 @@ class PostHandler(
         return postId
     }
 
+    // ------------------------------------------------------------------------- //
+
     @PostCache
     fun like(userId: UUID, postId: Long) {
         postRedisHandler.like(userId = userId, postId = postId, type = PostLikeType.LIKE)
@@ -136,6 +142,8 @@ class PostHandler(
     fun unlike(userId: UUID, postId: Long) {
         postRedisHandler.like(userId = userId, postId = postId, type = PostLikeType.UNLIKE)
     }
+
+    // ------------------------------------------------------------------------- //
 
     private fun isAuthorOfPost(userId: UUID, post: Post) {
         if (userId != post.userId)
