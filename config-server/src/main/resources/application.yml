@@ -35,4 +35,5 @@ spring:
             - 'jwt'
             - 'messaging'
             - 'monitoring'
+            - 'oauth'
             - 'redis'

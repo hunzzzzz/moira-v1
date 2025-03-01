@@ -1,8 +1,8 @@
 package com.hunzz.userserver.service
 
 import com.hunzz.common.domain.user.model.CachedUser
-import com.hunzz.common.domain.user.model.User
-import com.hunzz.common.domain.user.model.UserRole
+import com.hunzz.common.domain.user.model.entity.User
+import com.hunzz.common.domain.user.model.property.UserRole
 import com.hunzz.common.domain.user.repository.UserRepository
 import com.hunzz.common.global.exception.ErrorCode.DIFFERENT_TWO_PASSWORDS
 import com.hunzz.common.global.exception.ErrorCode.USER_NOT_FOUND

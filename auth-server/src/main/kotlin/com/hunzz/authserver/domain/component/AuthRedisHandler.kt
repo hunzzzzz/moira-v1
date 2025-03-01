@@ -102,4 +102,11 @@ class AuthRedisHandler(
             else -> objectMapper.readValue(result, UserAuth::class.java)
         }
     }
+
+    fun isNewcomer(email: String): Boolean {
+        val emailsKey = redisKeyProvider.emails()
+        val isNewcomer = !(redisTemplate.opsForSet().isMember(emailsKey, email) ?: true)
+
+        return isNewcomer
+    }
 }

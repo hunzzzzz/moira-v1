@@ -1,6 +1,7 @@
 package com.hunzz.userserver.client
 
 import com.hunzz.common.domain.user.model.CachedUser
+import com.hunzz.common.domain.user.model.UserAuth
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -24,6 +25,15 @@ class UserPrivateController(
         @RequestParam missingIds: List<UUID>
     ): ResponseEntity<HashMap<UUID, CachedUser>> {
         val body = userPrivateService.getAll(missingIds = missingIds)
+
+        return ResponseEntity.ok(body)
+    }
+
+    @GetMapping("/user/auth")
+    fun getUserAuth(
+        @RequestParam email: String
+    ): ResponseEntity<UserAuth> {
+        val body = userPrivateService.getUserAuth(email = email)
 
         return ResponseEntity.ok(body)
     }

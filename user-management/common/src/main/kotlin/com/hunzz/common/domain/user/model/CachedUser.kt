@@ -1,5 +1,6 @@
 package com.hunzz.common.domain.user.model
 
+import com.hunzz.common.domain.user.model.property.UserStatus
 import java.util.*
 
 data class CachedUser(

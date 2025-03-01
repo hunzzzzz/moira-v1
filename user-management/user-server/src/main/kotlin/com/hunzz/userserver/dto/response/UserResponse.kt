@@ -1,6 +1,6 @@
 package com.hunzz.userserver.dto.response
 
-import com.hunzz.common.domain.user.model.UserStatus
+import com.hunzz.common.domain.user.model.property.UserStatus
 import java.util.*
 
 data class UserResponse(

@@ -14,7 +14,6 @@ class TokenHandler(
         val atk = jwtProvider.createAccessToken(userAuth = userAuth)
         val rtk = jwtProvider.createRefreshToken(userAuth = userAuth)
 
-        // Redis에 RTK 저장
         authRedisHandler.setRtk(email = userAuth.email, rtk = rtk)
 
         return TokenResponse(atk = atk, rtk = rtk)
