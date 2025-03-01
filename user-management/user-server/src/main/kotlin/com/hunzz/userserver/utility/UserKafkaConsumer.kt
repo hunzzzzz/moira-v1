@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.common.domain.user.model.CachedUser
 import com.hunzz.common.domain.user.model.UserAuth
 import com.hunzz.common.domain.user.model.entity.KakaoUser
+import com.hunzz.common.domain.user.model.entity.NaverUser
 import com.hunzz.common.domain.user.model.entity.User
 import com.hunzz.common.domain.user.model.property.UserRole
 import com.hunzz.common.domain.user.model.property.UserType
 import com.hunzz.common.domain.user.repository.KakaoUserRepository
-import com.hunzz.userserver.kafka.dto.KakaoSignupKafkaRequest
+import com.hunzz.common.domain.user.repository.NaverUserRepository
+import com.hunzz.userserver.kafka.dto.SignupKafkaRequest
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +20,7 @@ import java.util.*
 @Component
 class UserKafkaConsumer(
     private val kakaoUserRepository: KakaoUserRepository,
+    private val naverUserRepository: NaverUserRepository,
     private val objectMapper: ObjectMapper,
     private val userCacheManager: UserCacheManager,
     private val userRedisHandler: UserRedisHandler
@@ -39,7 +42,7 @@ class UserKafkaConsumer(
     @KafkaListener(topics = ["kakao-signup"], groupId = "user-server-kakao-signup")
     @Transactional
     fun kakaoSignup(message: String) {
-        val data = objectMapper.readValue(message, KakaoSignupKafkaRequest::class.java)
+        val data = objectMapper.readValue(message, SignupKafkaRequest::class.java)
 
         // 추후 코루틴으로 리팩토링
         // DB에 객체 저장
@@ -55,6 +58,33 @@ class UserKafkaConsumer(
         val userAuth = UserAuth(
             userId = data.userId,
             type = UserType.KAKAO,
+            role = UserRole.USER,
+            email = data.email,
+            password = null
+        )
+
+        userRedisHandler.signup(userAuth = userAuth)
+    }
+
+    @KafkaListener(topics = ["naver-signup"], groupId = "user-server-naver-signup")
+    @Transactional
+    fun naverSignup(message: String) {
+        val data = objectMapper.readValue(message, SignupKafkaRequest::class.java)
+
+        // 추후 코루틴으로 리팩토링
+        // DB에 객체 저장
+        naverUserRepository.save(
+            NaverUser(
+                id = data.userId,
+                email = data.email,
+                name = data.name,
+            )
+        )
+
+        // Redis에 유저 정보 저장
+        val userAuth = UserAuth(
+            userId = data.userId,
+            type = UserType.NAVER,
             role = UserRole.USER,
             email = data.email,
             password = null

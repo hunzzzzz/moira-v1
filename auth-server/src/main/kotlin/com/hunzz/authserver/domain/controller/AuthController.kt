@@ -2,11 +2,9 @@ package com.hunzz.authserver.domain.controller
 
 import com.hunzz.authserver.domain.dto.request.LoginRequest
 import com.hunzz.authserver.domain.dto.response.KakaoTokenResponse
+import com.hunzz.authserver.domain.dto.response.NaverTokenResponse
 import com.hunzz.authserver.domain.dto.response.TokenResponse
-import com.hunzz.authserver.domain.service.KakaoLoginService
-import com.hunzz.authserver.domain.service.LoginService
-import com.hunzz.authserver.domain.service.LogoutService
-import com.hunzz.authserver.domain.service.RefreshService
+import com.hunzz.authserver.domain.service.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -17,6 +15,7 @@ class AuthController(
     private val kakaoLoginService: KakaoLoginService,
     private val loginService: LoginService,
     private val logoutService: LogoutService,
+    private val naverLoginService: NaverLoginService,
     private val refreshService: RefreshService
 ) {
     @PostMapping("/login")
@@ -29,6 +28,13 @@ class AuthController(
     @GetMapping("/oauth/login/kakao")
     suspend fun kakaoLogin(@RequestParam code: String): ResponseEntity<KakaoTokenResponse> {
         val body = kakaoLoginService.login(code = code)
+
+        return ResponseEntity.ok(body)
+    }
+
+    @GetMapping("/oauth/login/naver")
+    suspend fun naverLogin(@RequestParam code: String): ResponseEntity<NaverTokenResponse> {
+        val body = naverLoginService.login(code = code)
 
         return ResponseEntity.ok(body)
     }

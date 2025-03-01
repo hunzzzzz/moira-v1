@@ -1,6 +1,8 @@
 package com.hunzz.userserver.utility
 
 import com.hunzz.common.domain.user.model.CachedUser
+import com.hunzz.common.domain.user.repository.KakaoUserRepository
+import com.hunzz.common.domain.user.repository.NaverUserRepository
 import com.hunzz.common.domain.user.repository.UserRepository
 import com.hunzz.common.global.exception.ErrorCode.USER_NOT_FOUND
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
@@ -11,11 +13,15 @@ import java.util.*
 
 @Component
 class UserCacheManager(
+    private val kakaoUserRepository: KakaoUserRepository,
+    private val naverUserRepository: NaverUserRepository,
     private val userRedisHandler: UserRedisHandler,
     private val userRepository: UserRepository
 ) {
     fun get(userId: UUID): CachedUser {
-        val user = userRepository.findUserProfile(userId = userId)
+        val user = kakaoUserRepository.findUserProfile(userId = userId)
+            ?: naverUserRepository.findUserProfile(userId = userId)
+            ?: userRepository.findUserProfile(userId = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
         return CachedUser(

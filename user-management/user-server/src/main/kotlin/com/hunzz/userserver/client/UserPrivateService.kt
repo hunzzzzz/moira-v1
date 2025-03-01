@@ -3,6 +3,7 @@ package com.hunzz.userserver.client
 import com.hunzz.common.domain.user.model.CachedUser
 import com.hunzz.common.domain.user.model.UserAuth
 import com.hunzz.common.domain.user.repository.KakaoUserRepository
+import com.hunzz.common.domain.user.repository.NaverUserRepository
 import com.hunzz.common.domain.user.repository.UserRepository
 import com.hunzz.common.global.exception.ErrorCode.USER_NOT_FOUND
 import com.hunzz.common.global.exception.custom.InvalidUserInfoException
@@ -13,6 +14,7 @@ import java.util.*
 @Service
 class UserPrivateService(
     private val kakaoUserRepository: KakaoUserRepository,
+    private val naverUserRepository: NaverUserRepository,
     private val userCacheManager: UserCacheManager,
     private val userRepository: UserRepository
 ) {
@@ -32,6 +34,7 @@ class UserPrivateService(
 
     fun getUserAuth(email: String): UserAuth {
         val userAth = kakaoUserRepository.findUserAuth(email = email)
+            ?: naverUserRepository.findUserAuth(email = email)
             ?: userRepository.findUserAuth(email = email)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
