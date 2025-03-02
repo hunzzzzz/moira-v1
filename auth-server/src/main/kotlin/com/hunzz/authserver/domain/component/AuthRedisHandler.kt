@@ -44,14 +44,15 @@ class AuthRedisHandler(
             inputEmail
         )
 
-        // 결과 확인
+        // 1차 검증 및 userAuth 객체 획득
+        // userAuth 캐시가 Redis에 존재하지 않으면, user-private에서 가져온다.
         val userAuth = when (result) {
             INVALID_LOGIN_INFO.name -> throw InvalidAuthException(INVALID_LOGIN_INFO)
             NO_CACHE -> authCacheManager.getUserAuthWithLocalCache(email = inputEmail)
             else -> objectMapper.readValue(result, UserAuth::class.java)
         }
 
-        // 비밀번호 검증
+        // 2차 검증
         if (!passwordEncoder.matches(rawPassword = inputPassword, encodedPassword = userAuth.password))
             throw InvalidAuthException(INVALID_LOGIN_INFO)
 

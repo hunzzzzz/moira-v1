@@ -22,9 +22,9 @@ class KakaoLoginService(
         // 유저 정보 획득
         val userInfo = oauthRequestSender.getKakaoUserInfo(accessToken = kakaoToken.accessToken)
         val email = userInfo.kakaoAccount.email ?: throw InvalidAuthException(OAUTH_LOGIN_ERROR)
-        val isNewcomer = authRedisHandler.isNewcomer(email = email)
 
         // 신규 회원인 경우, 회원가입 진행
+        val isNewcomer = authRedisHandler.isNewcomer(email = email)
         val userAuth = if (isNewcomer) {
             val userId = authKafkaHandler.kakaoUserSignup(email = email, name = userInfo.kakaoAccount.profile.nickname)
 
