@@ -11,7 +11,7 @@ import java.util.*
 
 @Component
 class AuthPrincipalArgumentResolver(
-    private val jwtProvider: JwtProvider,
+    private val jwtProvider: JwtProvider
 ) : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter): Boolean {
         return parameter.hasParameterAnnotation(AuthPrincipal::class.java)
@@ -29,7 +29,8 @@ class AuthPrincipalArgumentResolver(
 
         // ATK에서 userId 추출
         val payload = jwtProvider.getUserInfoFromToken(token = atk!!)
+        val userId = UUID.fromString(payload.subject)
 
-        return UUID.fromString(payload.subject)
+        return userId
     }
 }

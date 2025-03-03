@@ -3,6 +3,7 @@ package com.hunzz.authserver.domain.service
 import com.hunzz.authserver.domain.component.*
 import com.hunzz.authserver.domain.dto.response.NaverTokenResponse
 import com.hunzz.authserver.utility.auth.UserAuth
+import com.hunzz.authserver.utility.cache.UserCache
 import org.springframework.stereotype.Service
 
 @Service
@@ -13,6 +14,7 @@ class NaverLoginService(
     private val oauthRequestSender: OauthRequestSender,
     private val tokenHandler: TokenHandler
 ) {
+    @UserCache
     suspend fun login(code: String): NaverTokenResponse {
         // 네이버 접근용 토큰 획득
         val naverToken = oauthRequestSender.getNaverToken(code = code)

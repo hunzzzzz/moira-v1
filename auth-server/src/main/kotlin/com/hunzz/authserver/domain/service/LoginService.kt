@@ -4,6 +4,7 @@ import com.hunzz.authserver.domain.component.AuthRedisHandler
 import com.hunzz.authserver.domain.component.TokenHandler
 import com.hunzz.authserver.domain.dto.request.LoginRequest
 import com.hunzz.authserver.domain.dto.response.TokenResponse
+import com.hunzz.authserver.utility.cache.UserCache
 import org.springframework.stereotype.Service
 
 @Service
@@ -11,6 +12,7 @@ class LoginService(
     private val authRedisHandler: AuthRedisHandler,
     private val tokenHandler: TokenHandler
 ) {
+    @UserCache
     fun login(request: LoginRequest): TokenResponse {
         // 검증 및 userAuth 객체 획득
         val userAuth = authRedisHandler.validateThenGetUserAuth(

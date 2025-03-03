@@ -24,7 +24,7 @@ class ImageHandler(
     private val objectMapper: ObjectMapper
 ) {
     private fun uploadToS3(fileName: String, image: BufferedImage, scale: Double, isThumbnail: Boolean = false) {
-        // settings
+        // 세팅
         val outputStream = ByteArrayOutputStream()
         if (isThumbnail)
             Thumbnails.of(image)
@@ -44,16 +44,15 @@ class ImageHandler(
             contentType = "image/jpeg"
         }
 
-        // upload
+        // AWS S3에 업로드
         amazonS3.putObject(
             PutObjectRequest(bucketName, fileName, inputStream, metadata)
         )
     }
 
-    @KafkaListener(topics = ["add-image"], groupId = "image-server-add-image")
+    @KafkaListener(topics = ["upload-image"], groupId = "upload-image")
     fun save(message: String) {
         val data = objectMapper.readValue(message, KafkaImageRequest::class.java)
-
         val originalImage = ImageIO.read(ByteArrayInputStream(data.image))
 
         uploadToS3(fileName = data.originalFileName, image = originalImage, scale = 1.0)

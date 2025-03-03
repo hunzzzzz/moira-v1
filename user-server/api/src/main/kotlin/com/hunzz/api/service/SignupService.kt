@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.api.component.UserKafkaHandler
 import com.hunzz.api.component.UserRedisHandler
 import com.hunzz.api.dto.request.SignUpRequest
-import com.hunzz.common.kafka.dto.SocialSignupKafkaRequest
+import com.hunzz.common.kafka.dto.KafkaSocialSignupRequest
 import com.hunzz.common.model.property.UserType
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
@@ -32,7 +32,7 @@ class SignupService(
 
     @KafkaListener(topics = ["kakao-signup"], groupId = "kakao-signup")
     fun kakaoSignup(message: String) {
-        val request = objectMapper.readValue(message, SocialSignupKafkaRequest::class.java)
+        val request = objectMapper.readValue(message, KafkaSocialSignupRequest::class.java)
 
         // Redis에 유저 정보 저장
         userRedisHandler.socialUserSignup(request = request, type = UserType.KAKAO)
@@ -43,7 +43,7 @@ class SignupService(
 
     @KafkaListener(topics = ["naver-signup"], groupId = "naver-signup")
     fun naverSignup(message: String) {
-        val request = objectMapper.readValue(message, SocialSignupKafkaRequest::class.java)
+        val request = objectMapper.readValue(message, KafkaSocialSignupRequest::class.java)
 
         // Redis에 유저 정보 저장
         userRedisHandler.socialUserSignup(request = request, type = UserType.NAVER)

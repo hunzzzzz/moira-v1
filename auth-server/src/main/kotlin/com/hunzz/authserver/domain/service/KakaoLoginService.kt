@@ -3,6 +3,7 @@ package com.hunzz.authserver.domain.service
 import com.hunzz.authserver.domain.component.*
 import com.hunzz.authserver.domain.dto.response.KakaoTokenResponse
 import com.hunzz.authserver.utility.auth.UserAuth
+import com.hunzz.authserver.utility.cache.UserCache
 import com.hunzz.authserver.utility.exception.ErrorCode.OAUTH_LOGIN_ERROR
 import com.hunzz.authserver.utility.exception.custom.InvalidAuthException
 import org.springframework.stereotype.Service
@@ -15,6 +16,7 @@ class KakaoLoginService(
     private val oauthRequestSender: OauthRequestSender,
     private val tokenHandler: TokenHandler
 ) {
+    @UserCache
     suspend fun login(code: String): KakaoTokenResponse {
         // 카카오 접근용 토큰 획득
         val kakaoToken = oauthRequestSender.getKakaoToken(code = code)

@@ -5,10 +5,7 @@ import com.hunzz.api.dto.response.RelationInfo
 import com.hunzz.api.dto.response.UserResponse
 import com.hunzz.common.cache.UserCacheManager
 import com.hunzz.common.model.cache.UserInfo
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -17,13 +14,13 @@ class ProfileService(
     private val userCacheManager: UserCacheManager,
     private val userRedisHandler: UserRedisHandler
 ) {
-    fun getProfile(userId: UUID, targetId: UUID) = runBlocking {
+    suspend fun getProfile(userId: UUID, targetId: UUID) = coroutineScope {
         val (userInfo, relationInfo) = withTimeout(5_000) {
-            // 유저 정보 조회
+            // 작업1: 유저 정보 조회
             val job1 = async {
                 userCacheManager.getWithLocalCache(userId = targetId)
             }
-            // 팔로잉/팔로워 수 조회
+            // 작업2: 팔로잉/팔로워 수 조회
             val job2 = async {
                 userRedisHandler.getRelationInfo(userId = targetId)
             }

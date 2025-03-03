@@ -1,13 +1,12 @@
 package com.hunzz.common.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hunzz.common.redis.RedisKeyProvider
 import com.hunzz.common.exception.ErrorCode.USER_NOT_FOUND
 import com.hunzz.common.exception.custom.InvalidUserInfoException
 import com.hunzz.common.model.cache.UserInfo
-import com.hunzz.common.repository.KakaoUserRepository
-import com.hunzz.common.repository.NaverUserRepository
+import com.hunzz.common.redis.RedisKeyProvider
 import com.hunzz.common.repository.UserRepository
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
@@ -16,8 +15,6 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class UserCacheManager(
-    private val kakaoUserRepository: KakaoUserRepository,
-    private val naverUserRepository: NaverUserRepository,
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>,
@@ -41,10 +38,14 @@ class UserCacheManager(
         )
     }
 
+    private fun deleteUserCacheFromRedis(userId: UUID) {
+        val userCacheKey = redisKeyProvider.user(userId = userId)
+
+        redisTemplate.delete(userCacheKey)
+    }
+
     fun get(userId: UUID): UserInfo {
-        val user = kakaoUserRepository.findUserProfile(userId = userId)
-            ?: naverUserRepository.findUserProfile(userId = userId)
-            ?: userRepository.findUserProfile(userId = userId)
+        val user = userRepository.findUserProfile(userId = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
         return UserInfo(
@@ -72,5 +73,10 @@ class UserCacheManager(
     @Cacheable(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")
     fun getWithLocalCache(userId: UUID): UserInfo {
         return getWithRedisCache(userId = userId)
+    }
+
+    @CacheEvict(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")
+    fun evictLocalCache(userId: UUID) {
+        deleteUserCacheFromRedis(userId = userId)
     }
 }

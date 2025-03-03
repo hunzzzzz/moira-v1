@@ -1,28 +1,51 @@
 package com.hunzz.common.model.entity
 
 import com.hunzz.common.model.property.UserRole
+import com.hunzz.common.model.property.UserStatus
 import com.hunzz.common.model.property.UserType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
+import jakarta.persistence.*
+import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @Table(name = "users")
 class User(
-    override val id: UUID = UUID.randomUUID(),
+    @Id
+    @Column(name = "user_id", nullable = false, unique = true)
+    val id: UUID = UUID.randomUUID(),
 
-    override val email: String,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    val type: UserType,
 
-    override val role: UserRole = UserRole.USER,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    var status: UserStatus = UserStatus.NORMAL,
 
-    @Column(name = "password", nullable = false)
-    val password: String,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    val role: UserRole = UserRole.USER,
 
-    override var name: String
-) : BaseUser(
-    id = id,
-    type = UserType.NORMAL,
-    email = email,
-    name = name
-)
+    @Column(name = "email", nullable = false, unique = true)
+    val email: String,
+
+    @Column(name = "password", nullable = true)
+    val password: String?,
+
+    @Column(name = "name", nullable = false)
+    val name: String,
+
+    @Column(name = "image_url", nullable = true)
+    var imageUrl: String? = null,
+
+    @Column(name = "thumbnail_url", nullable = true)
+    var thumbnailUrl: String? = null,
+
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now()
+) {
+    fun updateImageUrls(imageUrl: String, thumbnailUrl: String) {
+        this.imageUrl = imageUrl
+        this.thumbnailUrl = thumbnailUrl
+    }
+}

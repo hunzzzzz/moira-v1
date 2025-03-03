@@ -2,7 +2,7 @@ package com.hunzz.common.kafka.dto
 
 import java.util.*
 
-data class SignupKafkaRequest(
+data class KafkaSignupRequest(
     val userId: UUID,
     var email: String,
     var password: String,

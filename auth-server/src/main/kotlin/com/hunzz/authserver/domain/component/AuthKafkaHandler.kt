@@ -1,7 +1,7 @@
 package com.hunzz.authserver.domain.component
 
 import com.hunzz.authserver.utility.kafka.KafkaProducer
-import com.hunzz.authserver.utility.kafka.dto.SignupKafkaRequest
+import com.hunzz.authserver.utility.kafka.dto.KafkaSocialSignupRequest
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -12,7 +12,7 @@ class AuthKafkaHandler(
     fun kakaoUserSignup(email: String, name: String): UUID {
         val userId = UUID.randomUUID()
 
-        val data = SignupKafkaRequest(
+        val data = KafkaSocialSignupRequest(
             userId = userId,
             email = email,
             name = name
@@ -25,7 +25,7 @@ class AuthKafkaHandler(
     fun naverUserSignup(email: String, name: String): UUID {
         val userId = UUID.randomUUID()
 
-        val data = SignupKafkaRequest(
+        val data = KafkaSocialSignupRequest(
             userId = userId,
             email = email,
             name = name
