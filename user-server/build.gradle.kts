@@ -34,6 +34,8 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     dependencies {
+        // cache
+        implementation("com.github.ben-manes.caffeine:caffeine")
         // jpa
         implementation("org.springframework.boot:spring-boot-starter-data-jpa")
         // kotlin

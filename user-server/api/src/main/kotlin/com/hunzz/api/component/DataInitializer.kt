@@ -1,6 +1,6 @@
 package com.hunzz.api.component
 
-import com.hunzz.common.component.RedisKeyProvider
+import com.hunzz.common.redis.RedisKeyProvider
 import org.springframework.boot.CommandLineRunner
 import org.springframework.core.env.Environment
 import org.springframework.data.redis.core.RedisTemplate

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @FeignClient(
     name = "user-server",
-    url = "http://localhost:8080/user-cache/private" // TODO : 추후 환경 변수로 분리
+    url = "\${gateway.url}/user-cache/private"
 )
 interface UserServerClient {
     @GetMapping("/user/auth")

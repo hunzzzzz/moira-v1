@@ -41,4 +41,16 @@ class UserRedisScriptProvider {
     
             return nil
         """.trimIndent()
+
+    fun getRelationInfo() = """
+            local following_key = KEYS[1]
+            local follower_key = KEYS[2]
+            
+            -- 팔로잉 수 조회
+            local num_of_followings = redis.call('ZCARD', following_key)
+            -- 팔로워 수 조회
+            local num_of_followers = redis.call('ZCARD', follower_key)
+            
+            return {num_of_followings, num_of_followers}
+        """.trimIndent()
 }

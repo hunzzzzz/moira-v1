@@ -2,7 +2,8 @@ package com.hunzz.api.component
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.api.dto.request.SignUpRequest
-import com.hunzz.common.component.RedisKeyProvider
+import com.hunzz.api.dto.response.RelationInfo
+import com.hunzz.common.redis.RedisKeyProvider
 import com.hunzz.common.exception.ErrorCode.*
 import com.hunzz.common.exception.custom.InvalidSignupException
 import com.hunzz.common.kafka.dto.SocialSignupKafkaRequest
@@ -88,6 +89,24 @@ class UserRedisHandler(
             listOf(emailsKey, authKey),
             userAuth.email,
             objectMapper.writeValueAsString(userAuth)
+        )
+    }
+
+    fun getRelationInfo(userId: UUID): RelationInfo {
+        // 세팅
+        val script = userRedisScriptProvider.getRelationInfo()
+        val followingKey = redisKeyProvider.following(userId = userId)
+        val followerKey = redisKeyProvider.follower(userId = userId)
+
+        // execute script
+        val result = redisTemplate.execute(
+            RedisScript.of(script, List::class.java), // script
+            listOf(followingKey, followerKey), // keys
+        )
+
+        return RelationInfo(
+            numOfFollowings = (result[0] as Long?) ?: 0L,
+            numOfFollowers = (result[1] as Long?) ?: 0L
         )
     }
 }
