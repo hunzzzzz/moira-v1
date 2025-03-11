@@ -30,7 +30,7 @@ class AuthController(
     @Idempotent
     @GetMapping("/oauth/login/kakao")
     suspend fun kakaoLogin(@RequestParam code: String): ResponseEntity<KakaoTokenResponse> {
-        val body = kakaoLoginService.login(code = code)
+        val body = kakaoLoginService.kakaoLogin(code = code)
 
         return ResponseEntity.ok(body)
     }
@@ -38,7 +38,7 @@ class AuthController(
     @Idempotent
     @GetMapping("/oauth/login/naver")
     suspend fun naverLogin(@RequestParam code: String): ResponseEntity<NaverTokenResponse> {
-        val body = naverLoginService.login(code = code)
+        val body = naverLoginService.naverLogin(code = code)
 
         return ResponseEntity.ok(body)
     }

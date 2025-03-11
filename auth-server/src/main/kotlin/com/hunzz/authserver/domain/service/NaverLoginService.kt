@@ -1,7 +1,11 @@
 package com.hunzz.authserver.domain.service
 
-import com.hunzz.authserver.domain.component.*
+import com.hunzz.authserver.domain.component.AuthCacheManager
+import com.hunzz.authserver.domain.component.AuthKafkaHandler
+import com.hunzz.authserver.domain.component.AuthRedisHandler
+import com.hunzz.authserver.domain.component.OauthRequestSender
 import com.hunzz.authserver.domain.dto.response.NaverTokenResponse
+import com.hunzz.authserver.utility.auth.JwtProvider
 import com.hunzz.authserver.utility.auth.UserAuth
 import com.hunzz.authserver.utility.cache.UserCache
 import org.springframework.stereotype.Service
@@ -11,11 +15,11 @@ class NaverLoginService(
     private val authCacheManager: AuthCacheManager,
     private val authKafkaHandler: AuthKafkaHandler,
     private val authRedisHandler: AuthRedisHandler,
-    private val oauthRequestSender: OauthRequestSender,
-    private val tokenHandler: TokenHandler
+    private val jwtProvider: JwtProvider,
+    private val oauthRequestSender: OauthRequestSender
 ) {
     @UserCache
-    suspend fun login(code: String): NaverTokenResponse {
+    suspend fun naverLogin(code: String): NaverTokenResponse {
         // 네이버 접근용 토큰 획득
         val naverToken = oauthRequestSender.getNaverToken(code = code)
 
@@ -32,8 +36,9 @@ class NaverLoginService(
         } else authCacheManager.getUserAuthWithLocalCache(email = email)
 
         // 서비스용 토큰 생성
-        val tokens = tokenHandler.createTokens(userAuth = userAuth)
+        val atk = jwtProvider.createAccessToken(userAuth = userAuth)
+        val rtk = jwtProvider.createRefreshToken(userAuth = userAuth)
 
-        return NaverTokenResponse.from(atk = tokens.atk, rtk = tokens.rtk, naverToken = naverToken)
+        return NaverTokenResponse.from(atk = atk, rtk = rtk, naverToken = naverToken)
     }
 }

@@ -48,7 +48,7 @@ class UserRedisHandler(
         }
     }
 
-    fun signup(userId: UUID, request: SignUpRequest) {
+    fun addUserData(userId: UUID, request: SignUpRequest) {
         // 세팅
         val userAuth = UserAuth(
             userId = userId,

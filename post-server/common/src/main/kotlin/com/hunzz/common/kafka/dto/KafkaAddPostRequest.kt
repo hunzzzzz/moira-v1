@@ -1,0 +1,15 @@
+package com.hunzz.common.kafka.dto
+
+import com.hunzz.common.model.property.PostScope
+import java.util.*
+
+data class KafkaAddPostRequest(
+    val postId: UUID,
+    val content: String,
+    val scope: PostScope,
+    val userId: UUID,
+    val imageUrl: String?,
+    val thumbnailUrl: String?
+) {
+    constructor() : this(UUID.randomUUID(), "", PostScope.PUBLIC, UUID.randomUUID(), null, null)
+}

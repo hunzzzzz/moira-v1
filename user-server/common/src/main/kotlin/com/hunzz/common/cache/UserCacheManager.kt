@@ -45,16 +45,10 @@ class UserCacheManager(
     }
 
     fun get(userId: UUID): UserInfo {
-        val user = userRepository.findUserProfile(userId = userId)
+        val userInfo = userRepository.findUserProfile(userId = userId)
             ?: throw InvalidUserInfoException(USER_NOT_FOUND)
 
-        return UserInfo(
-            userId = userId,
-            status = user.status,
-            name = user.name,
-            imageUrl = user.imageUrl,
-            thumbnailUrl = user.thumbnailUrl
-        )
+        return userInfo
     }
 
     fun getWithRedisCache(userId: UUID): UserInfo {

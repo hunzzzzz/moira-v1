@@ -85,7 +85,7 @@ class RelationRedisHandler(
 
     fun checkFollowQueue(): List<RelationId> {
         // 세팅
-        val script = redisScriptProvider.followQueue()
+        val script = redisScriptProvider.checkFollowQueue()
         val followQueueKey = redisKeyProvider.followQueue()
 
         // 스크립트 실행
@@ -103,7 +103,7 @@ class RelationRedisHandler(
 
     fun checkUnfollowQueue(): List<RelationId> {
         // 세팅
-        val script = redisScriptProvider.unfollowQueue()
+        val script = redisScriptProvider.checkUnfollowQueue()
         val unfollowQueueKey = redisKeyProvider.unfollowQueue()
 
         // 스크립트 실행

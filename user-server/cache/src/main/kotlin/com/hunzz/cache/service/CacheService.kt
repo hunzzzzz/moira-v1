@@ -2,33 +2,27 @@ package com.hunzz.cache.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.common.cache.UserCacheManager
-import com.hunzz.common.exception.ErrorCode.USER_NOT_FOUND
-import com.hunzz.common.exception.custom.InvalidUserInfoException
-import com.hunzz.common.model.cache.UserAuth
-import com.hunzz.common.model.cache.UserInfo
-import com.hunzz.common.repository.UserRepository
+import com.hunzz.common.kafka.dto.KafkaAddUserCacheRequest
+import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class CacheService(
-    private val userCacheManager: UserCacheManager,
-    private val userRepository: UserRepository
+    private val objectMapper: ObjectMapper,
+    private val userCacheManager: UserCacheManager
 ) {
-    fun getUserAuth(email: String): UserAuth {
-        val userAth = userRepository.findUserAuth(email = email)
-            ?: throw InvalidUserInfoException(USER_NOT_FOUND)
+    @KafkaListener(topics = ["add-user-cache"], groupId = "add-user-cache")
+    fun addCache(message: String) {
+        val data = objectMapper.readValue(message, KafkaAddUserCacheRequest::class.java)
 
-        return userAth
+        userCacheManager.getWithLocalCache(userId = data.userId)
     }
 
-    fun getUsers(missingIds: List<UUID>): HashMap<UUID, UserInfo> {
-        val hashMap = hashMapOf<UUID, UserInfo>()
+    @KafkaListener(topics = ["re-add-user-cache"], groupId = "re-add-user-cache")
+    fun reAddCache(message: String) {
+        val data = objectMapper.readValue(message, KafkaAddUserCacheRequest::class.java)
 
-        missingIds.forEach {
-            hashMap[it] = userCacheManager.getWithLocalCache(userId = it)
-        }
-
-        return hashMap
+        userCacheManager.evictLocalCache(userId = data.userId)
+        userCacheManager.getWithLocalCache(userId = data.userId)
     }
 }

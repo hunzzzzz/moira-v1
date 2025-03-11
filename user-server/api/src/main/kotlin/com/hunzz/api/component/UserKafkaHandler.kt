@@ -3,6 +3,7 @@ package com.hunzz.api.component
 import com.hunzz.api.dto.request.SignUpRequest
 import com.hunzz.common.kafka.KafkaProducer
 import com.hunzz.common.kafka.dto.*
+import org.springframework.context.annotation.Description
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
@@ -12,7 +13,8 @@ class UserKafkaHandler(
     private val kafkaProducer: KafkaProducer,
     private val passwordEncoder: PasswordEncoder
 ) {
-    fun signup(userId: UUID, request: SignUpRequest) {
+    @Description("user-api -> user-data")
+    fun saveUser(userId: UUID, request: SignUpRequest) {
         val data = KafkaSignupRequest(
             userId = userId,
             email = request.email!!,
@@ -20,15 +22,15 @@ class UserKafkaHandler(
             name = request.name!!,
             adminCode = request.adminCode
         )
-        kafkaProducer.send(topic = "save-user-in-db", data = data)
+        kafkaProducer.send(topic = "save-user", data = data)
     }
 
     fun kakaoSignup(request: KafkaSocialSignupRequest) {
-        kafkaProducer.send(topic = "save-kakao-user-in-db", data = request)
+        kafkaProducer.send(topic = "save-kakao-user", data = request)
     }
 
     fun naverSignup(request: KafkaSocialSignupRequest) {
-        kafkaProducer.send(topic = "save-naver-user-in-db", data = request)
+        kafkaProducer.send(topic = "save-naver-user", data = request)
     }
 
     fun uploadImage(originalFileName: String, thumbnailFileName: String, image: MultipartFile) {

@@ -1,16 +1,16 @@
 package com.hunzz.authserver.domain.service
 
 import com.hunzz.authserver.domain.component.AuthRedisHandler
-import com.hunzz.authserver.domain.component.TokenHandler
 import com.hunzz.authserver.domain.dto.request.LoginRequest
 import com.hunzz.authserver.domain.dto.response.TokenResponse
+import com.hunzz.authserver.utility.auth.JwtProvider
 import com.hunzz.authserver.utility.cache.UserCache
 import org.springframework.stereotype.Service
 
 @Service
 class LoginService(
     private val authRedisHandler: AuthRedisHandler,
-    private val tokenHandler: TokenHandler
+    private val jwtProvider: JwtProvider
 ) {
     @UserCache
     fun login(request: LoginRequest): TokenResponse {
@@ -21,6 +21,11 @@ class LoginService(
         )
 
         // 토큰 생성
-        return tokenHandler.createTokens(userAuth = userAuth)
+        val atk = jwtProvider.createAccessToken(userAuth = userAuth)
+        val rtk = jwtProvider.createRefreshToken(userAuth = userAuth)
+
+        authRedisHandler.setRtk(email = userAuth.email, rtk = rtk)
+
+        return TokenResponse(atk = atk, rtk = rtk)
     }
 }

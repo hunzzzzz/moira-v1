@@ -22,10 +22,10 @@ class SignupService(
 
         // Redis에 유저 정보 저장
         val userId = UUID.randomUUID()
-        userRedisHandler.signup(userId = userId, request = request)
+        userRedisHandler.addUserData(userId = userId, request = request)
 
-        // Kafka 메시지 전송 (user-api -> user-consumer)
-        userKafkaHandler.signup(userId = userId, request = request)
+        // Kafka 메시지 전송 (user-api -> user-data)
+        userKafkaHandler.saveUser(userId = userId, request = request)
 
         return userId
     }
@@ -37,7 +37,7 @@ class SignupService(
         // Redis에 유저 정보 저장
         userRedisHandler.socialUserSignup(request = request, type = UserType.KAKAO)
 
-        // Kafka 메시지 전송 (user-api -> user-consumer)
+        // Kafka 메시지 전송 (user-api -> user-data)
         userKafkaHandler.kakaoSignup(request = request)
     }
 
@@ -48,7 +48,7 @@ class SignupService(
         // Redis에 유저 정보 저장
         userRedisHandler.socialUserSignup(request = request, type = UserType.NAVER)
 
-        // Kafka 메시지 전송 (user-api -> user-consumer)
+        // Kafka 메시지 전송 (user-api -> user-data)
         userKafkaHandler.naverSignup(request = request)
     }
 }

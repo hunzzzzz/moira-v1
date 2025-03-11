@@ -30,10 +30,7 @@ class JwtProvider(
             it.subject(userAuth.userId.toString())
             it.claims(
                 Jwts.claims().add(
-                    mapOf(
-                        "role" to userAuth.role,
-                        "email" to userAuth.email,
-                    )
+                    mapOf("role" to userAuth.role, "email" to userAuth.email)
                 ).build()
             )
             it.expiration(Date(Date().time + expirationTime))
@@ -47,7 +44,7 @@ class JwtProvider(
         createToken(userAuth = userAuth, expirationTime = expirationTimeOfAtk)
 
     fun createRefreshToken(userAuth: UserAuth) =
-        createToken(userAuth = userAuth, expirationTimeOfRtk)
+        createToken(userAuth = userAuth, expirationTime = expirationTimeOfRtk)
 
     fun substringToken(token: String?) =
         if (!token.isNullOrBlank() && token.startsWith("Bearer "))

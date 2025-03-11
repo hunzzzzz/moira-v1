@@ -47,7 +47,7 @@ class RedisScriptProvider {
             return nil
         """.trimIndent()
 
-    fun followQueue() = """
+    fun checkFollowQueue() = """
             local follow_queue_key = KEYS[1]
             local elements = {}
             
@@ -60,7 +60,7 @@ class RedisScriptProvider {
             return elements
         """.trimIndent()
 
-    fun unfollowQueue() = """
+    fun checkUnfollowQueue() = """
             local unfollow_queue_key = KEYS[1]
             local elements = {}
             

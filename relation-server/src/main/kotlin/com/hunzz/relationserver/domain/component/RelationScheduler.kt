@@ -23,11 +23,11 @@ class RelationScheduler(
 
     @Scheduled(fixedRate = 1000 * 10)
     fun checkFollowQueue() {
-        // get relations
+        // Redis에서 팔로잉 큐 조회
         val relations = relationRedisHandler.checkFollowQueue()
         if (relations.isEmpty()) return
 
-        // batch insert (with jdbc template)
+        // 배치 삽입 (Jdbc Template)
         val sql = "INSERT INTO relations (user_id, target_id, created_at) VALUES (?, ?, ?)"
 
         jdbcTemplate.batchUpdate(sql, relations, 1000) { ps, relation ->
@@ -39,11 +39,11 @@ class RelationScheduler(
 
     @Scheduled(fixedRate = 1000 * 10)
     fun checkUnfollowQueue() {
-        // get relation ids
+        // Redis에서 언팔로잉 큐 조회
         val relationIds = relationRedisHandler.checkUnfollowQueue()
         if (relationIds.isEmpty()) return
 
-        // batch delete (with jdbc template)
+        // 배치 삭제 (Jdbc Template)
         val sql = "DELETE FROM relations WHERE user_id = ? AND target_id = ?"
 
         jdbcTemplate.batchUpdate(sql, relationIds, 1000) { ps, relationId ->

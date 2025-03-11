@@ -20,9 +20,7 @@ class UserCacheAspect(
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
-    @Around(
-        value = "@annotation(com.hunzz.authserver.utility.cache.UserCache)"
-    )
+    @Around(value = "@annotation(com.hunzz.authserver.utility.cache.UserCache)")
     fun addUserCache(joinPoint: ProceedingJoinPoint): Any? {
         val returnValue = joinPoint.proceed()
 
@@ -35,9 +33,10 @@ class UserCacheAspect(
             // Redis에 유저 캐시가 이미 존재하는지 확인
             // Kafka 메시지 전송 (auth-server -> user-cache)
             val userCacheKey = redisKeyProvider.user(userId = userId)
+            val data = KafkaAddUserCacheRequest(userId = userId)
 
             if (redisTemplate.opsForValue().get(userCacheKey) == null)
-                kafkaProducer.send(topic = "add-user-cache", data = KafkaAddUserCacheRequest(userId = userId))
+                kafkaProducer.send(topic = "add-user-cache", data = data)
         }
 
         return returnValue

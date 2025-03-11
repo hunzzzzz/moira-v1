@@ -4,4 +4,6 @@ import java.util.*
 
 data class KafkaAddUserCacheRequest(
     val userId: UUID
-)
+) {
+    constructor() : this(UUID.randomUUID())
+}

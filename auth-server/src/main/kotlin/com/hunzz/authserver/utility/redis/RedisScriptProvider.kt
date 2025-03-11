@@ -8,7 +8,6 @@ class RedisScriptProvider {
             -- 세팅
             local emails_key = KEYS[1]
             local auth_key = KEYS[2]
-            
             local email = ARGV[1]
             
             -- 이메일 검증

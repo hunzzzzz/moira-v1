@@ -49,7 +49,7 @@ class ImageUploadService(
                 val originalUrl = getImageUrl(fileName = originalFileName)
                 val thumbnailUrl = getImageUrl(fileName = thumbnailFileName)
 
-                // Kafka 메시지 전송 (user-api -> user-consumer)
+                // Kafka 메시지 전송 (user-api -> user-data)
                 userKafkaHandler.updateUserImageUrls(
                     userId = userId,
                     originalUrl = originalUrl,

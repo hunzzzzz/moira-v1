@@ -1,8 +1,7 @@
 package com.hunzz.authserver.domain.service
 
-import com.hunzz.authserver.domain.dto.response.TokenResponse
 import com.hunzz.authserver.domain.component.AuthRedisHandler
-import com.hunzz.authserver.domain.component.TokenHandler
+import com.hunzz.authserver.domain.dto.response.TokenResponse
 import com.hunzz.authserver.utility.auth.JwtProvider
 import com.hunzz.authserver.utility.exception.ErrorCode.INVALID_TOKEN
 import com.hunzz.authserver.utility.exception.custom.InvalidAuthException
@@ -13,8 +12,7 @@ import org.springframework.stereotype.Service
 @Service
 class RefreshService(
     private val authRedisHandler: AuthRedisHandler,
-    private val jwtProvider: JwtProvider,
-    private val tokenHandler: TokenHandler,
+    private val jwtProvider: JwtProvider
 ) {
     fun refresh(httpServletRequest: HttpServletRequest): TokenResponse {
         // 'Authorization' 헤더에서 RTK 추출
@@ -32,7 +30,10 @@ class RefreshService(
         // Authorization 헤더로 넘어온 RTK와, Redis에 있는 RTK를 비교
         val userAuth = authRedisHandler.checkRtkThenGetUserAuth(email = email, rtkFromAuthHeader = authHeader)
 
-        // create token
-        return tokenHandler.createTokens(userAuth = userAuth)
+        // 토큰 재생성
+        val newAtk = jwtProvider.createAccessToken(userAuth = userAuth)
+        val newRtk = jwtProvider.createRefreshToken(userAuth = userAuth)
+
+        return TokenResponse(atk = newAtk, rtk = newRtk)
     }
 }

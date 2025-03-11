@@ -1,6 +1,6 @@
 package com.hunzz.cache.controller
 
-import com.hunzz.cache.service.CacheService
+import com.hunzz.cache.service.GetCachedUserService
 import com.hunzz.common.model.cache.UserAuth
 import com.hunzz.common.model.cache.UserInfo
 import org.springframework.http.ResponseEntity
@@ -13,13 +13,13 @@ import java.util.*
 @RestController
 @RequestMapping("/private")
 class CacheController(
-    private val cacheService: CacheService
+    private val getCachedUserService: GetCachedUserService
 ) {
     @GetMapping("/user/auth")
     fun getUserAuth(
         @RequestParam email: String
     ): ResponseEntity<UserAuth> {
-        val body = cacheService.getUserAuth(email = email)
+        val body = getCachedUserService.getUserAuth(email = email)
 
         return ResponseEntity.ok(body)
     }
@@ -28,7 +28,7 @@ class CacheController(
     fun getUsers(
         @RequestParam missingIds: List<UUID>
     ): ResponseEntity<HashMap<UUID, UserInfo>> {
-        val body = cacheService.getUsers(missingIds = missingIds)
+        val body = getCachedUserService.getUsers(missingIds = missingIds)
 
         return ResponseEntity.ok(body)
     }

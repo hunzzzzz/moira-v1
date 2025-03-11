@@ -38,7 +38,6 @@ class IdempotencyAspect(
         else {
             val result = joinPoint.proceed() as ResponseEntity<*>
             val newIdempotency = Idempotency(
-                key = idempotencyKey,
                 className = (result.body!!)::class.java.canonicalName,
                 response = objectMapper.writeValueAsString(result.body)
             )
