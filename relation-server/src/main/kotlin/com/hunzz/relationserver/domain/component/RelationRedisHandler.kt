@@ -42,7 +42,7 @@ class RelationRedisHandler(
         // 검증
         if (userId == targetId)
             throw InvalidRelationException(CANNOT_UNFOLLOW_ITSELF)
-        if (redisTemplate.opsForZSet().score(followingKey, targetId) == null)
+        if (redisTemplate.opsForZSet().score(followingKey, targetId.toString()) == null)
             throw InvalidRelationException(ALREADY_UNFOLLOWED)
     }
 

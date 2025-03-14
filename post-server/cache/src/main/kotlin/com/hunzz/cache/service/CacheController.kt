@@ -1,10 +1,7 @@
 package com.hunzz.cache.service
 
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
@@ -17,6 +14,15 @@ class CacheController(
         @PathVariable postId: UUID
     ): ResponseEntity<UUID> {
         val body = cacheService.getPostAuthorId(postId = postId)
+
+        return ResponseEntity.ok(body)
+    }
+
+    @GetMapping("/posts/latest")
+    fun getLatestPostIds(
+        @RequestParam authorId: UUID
+    ): ResponseEntity<List<UUID>> {
+        val body = cacheService.getLatestPostIds(authorId = authorId)
 
         return ResponseEntity.ok(body)
     }

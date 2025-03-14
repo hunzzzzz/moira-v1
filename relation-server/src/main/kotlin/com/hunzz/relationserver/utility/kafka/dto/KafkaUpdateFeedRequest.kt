@@ -2,7 +2,7 @@ package com.hunzz.relationserver.utility.kafka.dto
 
 import java.util.UUID
 
-data class KafkaFollowRequest(
+data class KafkaUpdateFeedRequest(
     val userId: UUID,
-    val targetId: UUID
+    val authorId: UUID
 )

@@ -1,7 +1,7 @@
 package com.hunzz.relationserver.domain.component
 
 import com.hunzz.relationserver.utility.kafka.KafkaProducer
-import com.hunzz.relationserver.utility.kafka.dto.KafkaFollowRequest
+import com.hunzz.relationserver.utility.kafka.dto.KafkaUpdateFeedRequest
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -10,14 +10,14 @@ class RelationKafkaHandler(
     private val kafkaProducer: KafkaProducer
 ) {
     fun follow(userId: UUID, targetId: UUID) {
-        val data = KafkaFollowRequest(userId = userId, targetId = targetId)
+        val data = KafkaUpdateFeedRequest(userId = userId, authorId = targetId)
 
-        kafkaProducer.send(topic = "follow", data = data)
+        kafkaProducer.send(topic = "update-feed-when-follow", data = data)
     }
 
     fun unfollow(userId: UUID, targetId: UUID) {
-        val data = KafkaFollowRequest(userId = userId, targetId = targetId)
+        val data = KafkaUpdateFeedRequest(userId = userId, authorId = targetId)
 
-        kafkaProducer.send(topic = "unfollow", data = data)
+        kafkaProducer.send(topic = "delete-feed-when-unfollow", data = data)
     }
 }

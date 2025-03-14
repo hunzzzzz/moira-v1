@@ -42,20 +42,19 @@ class AddPostService(
                 val job2 = async {
                     // Kafka 메시지 전송 (post-api -> feed-server)
                     if (PostScope.valueOf(request.scope!!) != PostScope.PRIVATE)
-                        postKafkaHandler.addFeed(authorId = userId, postId = postId)
+                        postKafkaHandler.updateFeed(authorId = userId, postId = postId)
                 }
 
                 // 작업3: 게시글 캐시 등록
-                val job3 = async {
-                    postKafkaHandler.addPostCache(postId = postId)
-                }
+                val job3 = async { postKafkaHandler.addPostCache(postId = postId) }
 
                 // 작업4: 유저 캐시 등록
-                val job4 = async {
-                    postKafkaHandler.addUserCache(userId = userId)
-                }
+                val job4 = async { postKafkaHandler.addUserCache(userId = userId) }
 
-                awaitAll(job1, job2, job3, job4)
+                // 작업5: 게시글 작성자 id 캐시 등록
+                val job5 = async { postKafkaHandler.addPostAuthorCache(postId = postId, authorId = userId) }
+
+                awaitAll(job1, job2, job3, job4, job5)
             }
 
             return@coroutineScope postId

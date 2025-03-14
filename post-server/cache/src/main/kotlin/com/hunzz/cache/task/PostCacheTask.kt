@@ -2,6 +2,7 @@ package com.hunzz.cache.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.common.cache.PostCacheManager
+import com.hunzz.common.kafka.dto.KafkaPostAuthorCacheRequest
 import com.hunzz.common.kafka.dto.KafkaPostCacheRequest
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -31,5 +32,12 @@ class PostCacheTask(
         val data = objectMapper.readValue(message, KafkaPostCacheRequest::class.java)
 
         postCacheManager.evictLocalCache(postId = data.postId)
+    }
+
+    @KafkaListener(topics = ["add-post-author-cache"], groupId = "add-post-author-cache")
+    fun addPostAuthorCache(message: String) {
+        val data = objectMapper.readValue(message, KafkaPostAuthorCacheRequest::class.java)
+
+        postCacheManager.getAuthorIdWithLocalCache(postId = data.postId)
     }
 }

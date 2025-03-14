@@ -18,4 +18,7 @@ interface PostRepository : JpaRepository<Post, UUID> {
 
     @Query("SELECT p.userId FROM Post p WHERE p.id = :postId")
     fun findPostAuthorId(postId: UUID): UUID?
+
+    @Query("SELECT p.id FROM Post p WHERE p.userId = :userId ORDER BY p.createdAt DESC LIMIT 10")
+    fun getLatestPosts(userId: UUID): List<UUID>
 }

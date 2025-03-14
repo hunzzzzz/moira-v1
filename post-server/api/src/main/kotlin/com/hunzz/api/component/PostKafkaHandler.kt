@@ -56,13 +56,13 @@ class PostKafkaHandler(
         kafkaProducer.send("delete-post", data)
     }
 
-    fun addFeed(authorId: UUID, postId: UUID) {
+    fun updateFeed(authorId: UUID, postId: UUID) {
         val data = KafkaAddFeedRequest(
             authorId = authorId,
             postId = postId
         )
 
-        kafkaProducer.send("feed-when-add-post", data)
+        kafkaProducer.send("update-feed-when-add-post", data)
     }
 
     fun addUserCache(userId: UUID) {
@@ -79,6 +79,15 @@ class PostKafkaHandler(
         val data = KafkaPostCacheRequest(postId = postId)
 
         kafkaProducer.send("add-post-cache", data)
+    }
+
+    fun addPostAuthorCache(postId: UUID, authorId: UUID) {
+        val data = KafkaPostAuthorCacheRequest(
+            postId = postId,
+            authorId = authorId
+        )
+
+        kafkaProducer.send("add-post-author-cache", data)
     }
 
     fun reAddPostCache(postId: UUID) {
