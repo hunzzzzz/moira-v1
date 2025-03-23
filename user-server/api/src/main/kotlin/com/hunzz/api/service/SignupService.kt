@@ -4,30 +4,50 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.api.component.UserKafkaHandler
 import com.hunzz.api.component.UserRedisHandler
 import com.hunzz.api.dto.request.SignUpRequest
+import com.hunzz.api.mail.UserMailSender
+import com.hunzz.common.exception.ErrorCode.*
+import com.hunzz.common.exception.custom.InvalidSignupException
 import com.hunzz.common.kafka.dto.KafkaSocialSignupRequest
 import com.hunzz.common.model.property.UserType
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class SignupService(
     private val objectMapper: ObjectMapper,
     private val userKafkaHandler: UserKafkaHandler,
+    private val userMailSender: UserMailSender,
     private val userRedisHandler: UserRedisHandler
 ) {
-    fun signup(request: SignUpRequest): UUID {
-        // 검증
-        userRedisHandler.validateSignupRequest(request = request)
+    fun sendSignupCode(email: String) {
+        // 이메일 중복 여부 확인
+        userRedisHandler.checkEmailDuplication(email = email)
 
-        // Redis에 유저 정보 저장
-        val userId = UUID.randomUUID()
-        userRedisHandler.addUserData(userId = userId, request = request)
+        // 본인인증 코드 생성 및 전송
+        val signupCode = userRedisHandler.setSignupCode(email = email)
+        userMailSender.sendSignupCode(email = email, code = signupCode)
+    }
+
+    fun checkSignupCode(email: String, code: String) {
+        // Redis에서 본인인증 코드 가져오기
+        val signupCode = userRedisHandler.getSignupCode(email = email)
+            ?: throw InvalidSignupException(EXPIRED_SIGNUP_CODE)
+
+        // 본인인증 코드 일치 여부 확인
+        if (signupCode != code)
+            throw InvalidSignupException(INVALID_SIGNUP_CODE)
+    }
+
+    fun signup(request: SignUpRequest) {
+        // 비밀번호 일치 여부 확인
+        if (request.password != request.password2)
+            throw InvalidSignupException(DIFFERENT_TWO_PASSWORDS)
+
+        // Redis에 이메일 저장 (Set)
+        userRedisHandler.addEmailIntoRedisSet(email = request.email!!)
 
         // Kafka 메시지 전송 (user-api -> user-data)
-        userKafkaHandler.saveUser(userId = userId, request = request)
-
-        return userId
+        userKafkaHandler.saveUser(request = request)
     }
 
     @KafkaListener(topics = ["kakao-signup"], groupId = "kakao-signup")

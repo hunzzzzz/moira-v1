@@ -1,6 +1,7 @@
 package com.hunzz.cache.service
 
 import com.hunzz.common.cache.PostCacheManager
+import com.hunzz.common.model.cache.PostInfo
 import com.hunzz.common.repository.PostRepository
 import org.springframework.stereotype.Component
 import java.util.*
@@ -16,5 +17,15 @@ class CacheService(
 
     fun getLatestPostIds(authorId: UUID): List<UUID> {
         return postRepository.getLatestPosts(userId = authorId)
+    }
+
+    fun getPosts(missingIds: List<UUID>): HashMap<UUID, PostInfo> {
+        val hashMap = hashMapOf<UUID, PostInfo>()
+
+        missingIds.forEach {
+            hashMap[it] = postCacheManager.getWithLocalCache(postId = it)
+        }
+
+        return hashMap
     }
 }

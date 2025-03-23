@@ -5,10 +5,12 @@ import java.util.*
 
 @Component
 class RedisKeyProvider {
-    // relation
-    fun followers(userId: UUID) = "followers:${userId}"
+    // post
+    fun like(userId: UUID) = "like:$userId"
+    fun likeCount() = "likes"
 
     // feed-queue
     fun feedQueue() = "feed-queue"
     fun feedDeleteQueue() = "feed-delete-queue"
+    fun feedReadQueue() = "feed-read-queue"
 }

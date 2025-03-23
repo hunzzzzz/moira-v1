@@ -5,8 +5,8 @@ import java.util.*
 
 @Component
 class RedisKeyProvider {
-    // admin
-    fun adminCode() = "admin_signup_code"
+    // signup
+    fun signupCode(email: String) = "signup:$email"
 
     // user
     fun auth(email: String) = "auth:$email"

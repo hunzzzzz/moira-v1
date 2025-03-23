@@ -12,6 +12,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:${property("jwtVersion")}")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:${property("jwtVersion")}")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:${property("jwtVersion")}")
+    // mail
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     // web
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")

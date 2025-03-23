@@ -20,7 +20,5 @@ data class SignUpRequest(
     var password2: String?,
 
     @field:NotBlank(message = "이름은 필수 입력 항목입니다.")
-    var name: String?,
-
-    var adminCode: String? = null
+    var name: String?
 )

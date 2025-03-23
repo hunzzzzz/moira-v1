@@ -33,6 +33,7 @@ spring:
             - 'encrypt'
             - 'eureka'
             - 'jwt'
+            - 'mail'
             - 'messaging'
             - 'monitoring'
             - 'oauth'

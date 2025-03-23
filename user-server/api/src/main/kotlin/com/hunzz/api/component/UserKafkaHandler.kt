@@ -14,13 +14,11 @@ class UserKafkaHandler(
     private val passwordEncoder: PasswordEncoder
 ) {
     @Description("user-api -> user-data")
-    fun saveUser(userId: UUID, request: SignUpRequest) {
+    fun saveUser(request: SignUpRequest) {
         val data = KafkaSignupRequest(
-            userId = userId,
             email = request.email!!,
             password = passwordEncoder.encodePassword(rawPassword = request.password!!),
-            name = request.name!!,
-            adminCode = request.adminCode
+            name = request.name!!
         )
         kafkaProducer.send(topic = "save-user", data = data)
     }
