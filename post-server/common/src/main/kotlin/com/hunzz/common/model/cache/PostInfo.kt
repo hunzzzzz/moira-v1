@@ -9,8 +9,8 @@ data class PostInfo(
     val scope: PostScope,
     val status: PostStatus,
     val content: String,
-    val imageUrl: String?,
+    val imageUrls: List<String>,
     val thumbnailUrl: String?
 ) {
-    constructor() : this(UUID.randomUUID(), PostScope.PUBLIC, PostStatus.NORMAL, "", null, null)
+    constructor() : this(UUID.randomUUID(), PostScope.PUBLIC, PostStatus.NORMAL, "", emptyList(), null)
 }

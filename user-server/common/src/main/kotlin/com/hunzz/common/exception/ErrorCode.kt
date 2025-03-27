@@ -22,5 +22,6 @@ enum class ErrorCode(val message: String) {
     INVALID_ADMIN_CODE("잘못된 어드민 가입 코드입니다."),
 
     // system
-    IMAGE_SYSTEM_ERROR("이미지 시스템이 에러가 발생하였습니다. 잠시 후에 다시 시도해주세요.")
+    IMAGE_SYSTEM_ERROR("이미지 시스템이 에러가 발생하였습니다. 잠시 후에 다시 시도해주세요."),
+    MAIL_SYSTEM_ERROR("이미지 시스템이 에러가 발생하였습니다. 잠시 후에 다시 시도해주세요.")
 }

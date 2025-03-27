@@ -1,4 +1,4 @@
-package com.hunzz.authserver.utility.password
+package com.hunzz.common.password
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

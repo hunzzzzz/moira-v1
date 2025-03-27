@@ -14,4 +14,10 @@ interface UserServerClient {
     fun getUserAuth(
         @RequestParam email: String
     ): UserAuth
+
+    @GetMapping("/user/auth/validate")
+    fun validateThenGetUserAuth(
+        @RequestParam email: String,
+        @RequestParam password: String
+    ): UserAuth?
 }

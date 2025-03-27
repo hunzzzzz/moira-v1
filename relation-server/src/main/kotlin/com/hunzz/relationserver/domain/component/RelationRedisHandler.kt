@@ -1,10 +1,8 @@
 package com.hunzz.relationserver.domain.component
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hunzz.relationserver.domain.dto.response.FollowResponse
 import com.hunzz.relationserver.domain.model.RelationId
 import com.hunzz.relationserver.domain.model.RelationType
-import com.hunzz.relationserver.utility.client.UserServerClient
 import com.hunzz.relationserver.utility.exception.ErrorCode.*
 import com.hunzz.relationserver.utility.exception.custom.InvalidRelationException
 import com.hunzz.relationserver.utility.redis.RedisKeyProvider
@@ -21,8 +19,7 @@ class RelationRedisHandler(
     private val objectMapper: ObjectMapper,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisScriptProvider: RedisScriptProvider,
-    private val redisTemplate: RedisTemplate<String, String>,
-    private val userServerClient: UserServerClient
+    private val redisTemplate: RedisTemplate<String, String>
 ) {
     fun checkFollowRequest(userId: UUID, targetId: UUID) {
         // 세팅
@@ -119,7 +116,7 @@ class RelationRedisHandler(
         return relationIds
     }
 
-    fun getRelations(userId: UUID, cursor: UUID?, type: RelationType, pageSize: Long): List<FollowResponse?> {
+    fun getRelations(userId: UUID, cursor: UUID?, type: RelationType, pageSize: Long): List<String> {
         // 세팅
         val script = redisScriptProvider.relations()
         val key = when (type) {
@@ -137,42 +134,6 @@ class RelationRedisHandler(
                 .toInstant().toEpochMilli().toDouble().toString()
         )
 
-        // 한 페이지 안에서 유저 캐시 정보가 없는 userId만 추출
-        val missingIds = result.filterIsInstance<String>()
-            .filter { it.startsWith("NULL:") }
-            .map { UUID.fromString(it.substring(5)) }
-        var missingUserInfos = hashMapOf<UUID, FollowResponse>()
-
-        // 캐시 정보가 없는 유저들의 id 리스트를 user-cache 서버로 전송하여 유저 정보 조회
-        // 네트워크 에러를 대비하여 최대 3번 요청을 보낸다.
-        if (missingIds.isNotEmpty()) {
-            var retryCount = 0
-            val maxRetries = 3
-
-            while (retryCount < maxRetries) {
-                try {
-                    missingUserInfos = userServerClient.getUsers(missingIds = missingIds)
-
-                    break
-                } catch (e: Exception) {
-                    retryCount++
-                    if (retryCount == maxRetries) throw e
-
-                    Thread.sleep(1000)
-                }
-            }
-        }
-
-        // FollowResponse 목록을 리턴
-        val followResponses = result.filterIsInstance<String>()
-            .map {
-                if (it.startsWith("NULL:")) {
-                    val id = UUID.fromString(it.substring(5))
-
-                    missingUserInfos[id]
-                } else objectMapper.readValue(it, FollowResponse::class.java)
-            }
-
-        return followResponses
+        return result.filterIsInstance<String>()
     }
 }

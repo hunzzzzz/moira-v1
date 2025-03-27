@@ -8,7 +8,7 @@ data class KafkaAddPostRequest(
     val content: String,
     val scope: PostScope,
     val userId: UUID,
-    val imageUrl: String?,
+    val imageUrls: List<String>?,
     val thumbnailUrl: String?
 ) {
     constructor() : this(UUID.randomUUID(), "", PostScope.PUBLIC, UUID.randomUUID(), null, null)

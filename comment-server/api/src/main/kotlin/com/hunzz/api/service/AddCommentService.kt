@@ -28,17 +28,13 @@ class AddCommentService(
                 )
             }
 
-            // TODO
-            // 작업2: 게시글 작성자에게 알림 전송
-            val job2 = async { }
+            // 작업2: 게시글 캐시 등록
+            val job2 = async { commentKafkaHandler.addPostCache(postId = postId) }
 
-            // 작업3: 게시글 캐시 등록
-            val job3 = async { commentKafkaHandler.addPostCache(postId = postId) }
+            // 작업3: 유저 캐시 등록
+            val job3 = async { commentKafkaHandler.addUserCache(userId = userId) }
 
-            // 작업4: 유저 캐시 등록
-            val job4 = async { commentKafkaHandler.addUserCache(userId = userId) }
-
-            awaitAll(job1, job2, job3, job4)
+            awaitAll(job1, job2, job3)
         }
 
         return@coroutineScope commentId

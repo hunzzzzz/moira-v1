@@ -24,7 +24,7 @@ class AddPostTask(
                 scope = data.scope,
                 content = data.content,
                 userId = data.userId,
-                imageUrl = data.imageUrl,
+                imageUrls = data.imageUrls,
                 thumbnailUrl = data.thumbnailUrl
             )
         )

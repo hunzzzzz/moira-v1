@@ -7,7 +7,6 @@ data class UserAuth(
     val type: String,
     val role: String,
     val email: String,
-    val password: String?
 ) {
-    constructor() : this(UUID.randomUUID(), "", "", "", "")
+    constructor() : this(UUID.randomUUID(), "", "", "")
 }

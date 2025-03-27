@@ -4,26 +4,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class RedisScriptProvider {
-    fun validateThenGetUserAuth() = """
-            -- 세팅
-            local emails_key = KEYS[1]
-            local auth_key = KEYS[2]
-            local email = ARGV[1]
-            
-            -- 이메일 검증
-            if redis.call('SISMEMBER', emails_key, email) ~= 1 then
-                return 'INVALID_LOGIN_INFO'
-            end
-            
-            -- 유저 인증 정보 가져오기
-            local user_auth = redis.call('GET', auth_key)
-            if not user_auth then
-                return 'NO_CACHE'
-            end
-            
-            return user_auth
-        """.trimIndent()
-
     fun blockAtkThenDeleteRtk() = """
             -- 세팅
             local blocked_atk_key = KEYS[1]
@@ -38,14 +18,12 @@ class RedisScriptProvider {
             -- RTK 삭제
             redis.call('DEL', rtk_key)
             
-            return nil
+            return 'OK'
         """.trimIndent()
 
-    fun checkRtkThenGetUserAuth() = """
+    fun validateRtk() = """
             -- 세팅
             local rtk_key = KEYS[1]
-            local auth_key = KEYS[2]
-            
             local rtk_from_header = ARGV[1]
             
             -- RTK 추출
@@ -61,12 +39,6 @@ class RedisScriptProvider {
                 return 'INVALID_TOKEN'
             end
             
-            -- 유저 인증 정보 가져오기
-            local user_auth = redis.call('GET', auth_key)
-            if not user_auth then
-                return 'NO_CACHE'
-            end
-            
-            return user_auth
+            return 'OK'
         """.trimIndent()
 }

@@ -1,5 +1,6 @@
 package com.hunzz.api.component
 
+import com.hunzz.api.component.validation.PostImageHandler
 import com.hunzz.api.dto.request.PostRequest
 import com.hunzz.common.kafka.KafkaProducer
 import com.hunzz.common.kafka.dto.*
@@ -13,27 +14,38 @@ import java.util.*
 @Component
 class PostKafkaHandler(
     private val kafkaProducer: KafkaProducer,
+    private val postImageHandler: PostImageHandler,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
-    fun uploadPostImage(originalFileName: String, thumbnailFileName: String, image: MultipartFile) {
-        val data = KafkaImageUploadRequest(
-            originalFileName = originalFileName,
+    fun uploadPostImages(
+        originalFileNames: List<String>,
+        thumbnailFileName: String,
+        images: List<MultipartFile>
+    ) {
+        val data = KafkaUploadImagesRequest(
+            fileNames = originalFileNames,
             thumbnailFileName = thumbnailFileName,
-            image = image.bytes
+            images = images.map { it.bytes }
         )
 
-        kafkaProducer.send("upload-image", data)
+        kafkaProducer.send("upload-images", data)
     }
 
-    fun savePost(postId: UUID, userId: UUID, request: PostRequest, imageUrl: String?, thumbnailUrl: String?) {
+    fun savePost(
+        postId: UUID,
+        userId: UUID,
+        request: PostRequest,
+        originalFileNames: List<String>?,
+        thumbnailFileName: String?
+    ) {
         val data = KafkaAddPostRequest(
             postId = postId,
             content = request.content!!,
             scope = PostScope.valueOf(request.scope!!),
             userId = userId,
-            imageUrl = imageUrl,
-            thumbnailUrl = thumbnailUrl
+            imageUrls = originalFileNames?.map { postImageHandler.generateImageUrl(fileName = it) },
+            thumbnailUrl = thumbnailFileName?.let { postImageHandler.generateImageUrl(fileName = it) },
         )
 
         kafkaProducer.send("add-post", data)
@@ -79,15 +91,6 @@ class PostKafkaHandler(
         val data = KafkaPostCacheRequest(postId = postId)
 
         kafkaProducer.send("add-post-cache", data)
-    }
-
-    fun addPostAuthorCache(postId: UUID, authorId: UUID) {
-        val data = KafkaPostAuthorCacheRequest(
-            postId = postId,
-            authorId = authorId
-        )
-
-        kafkaProducer.send("add-post-author-cache", data)
     }
 
     fun reAddPostCache(postId: UUID) {

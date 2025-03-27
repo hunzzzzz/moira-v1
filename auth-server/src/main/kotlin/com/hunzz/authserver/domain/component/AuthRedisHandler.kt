@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.authserver.utility.auth.UserAuth
 import com.hunzz.authserver.utility.exception.ErrorCode.*
 import com.hunzz.authserver.utility.exception.custom.InvalidAuthException
-import com.hunzz.authserver.utility.password.PasswordEncoder
 import com.hunzz.authserver.utility.redis.RedisKeyProvider
 import com.hunzz.authserver.utility.redis.RedisScriptProvider
 import org.springframework.beans.factory.annotation.Value
@@ -20,51 +19,31 @@ class AuthRedisHandler(
     @Value("\${jwt.expiration-time.rtk}")
     private val expirationTimeOfRtk: Long,
 
-    private val authCacheManager: AuthCacheManager,
     private val objectMapper: ObjectMapper,
-    private val passwordEncoder: PasswordEncoder,
     private val redisKeyProvider: RedisKeyProvider,
     private val redisScriptProvider: RedisScriptProvider,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
-    companion object {
-        const val NO_CACHE = "NO_CACHE"
-    }
-
-    fun validateThenGetUserAuth(inputEmail: String, inputPassword: String): UserAuth {
-        // 세팅
-        val script = redisScriptProvider.validateThenGetUserAuth()
+    fun checkValidEmail(email: String) {
         val emailsKey = redisKeyProvider.emails()
-        val authKey = redisKeyProvider.auth(email = inputEmail)
+        val isExistingEmail = redisTemplate.opsForSet().isMember(emailsKey, email) ?: false
 
-        // 스크립트 실행
-        val result = redisTemplate.execute(
-            RedisScript.of(script, String::class.java),
-            listOf(emailsKey, authKey),
-            inputEmail
-        )
-
-        // 1차 검증 및 userAuth 객체 획득
-        // userAuth 캐시가 Redis에 존재하지 않으면, user-cache에서 가져온다.
-        val userAuth = when (result) {
-            INVALID_LOGIN_INFO.name -> throw InvalidAuthException(INVALID_LOGIN_INFO)
-            NO_CACHE -> authCacheManager.getUserAuthWithLocalCache(email = inputEmail)
-            else -> objectMapper.readValue(result, UserAuth::class.java)
-        }
-
-        // 2차 검증
-        if (!passwordEncoder.matches(rawPassword = inputPassword, encodedPassword = userAuth.password))
-            throw InvalidAuthException(INVALID_LOGIN_INFO)
-
-        return userAuth
+        if (!isExistingEmail) throw InvalidAuthException(INVALID_LOGIN_INFO)
     }
 
     fun setRtk(email: String, rtk: String) {
-        // 세팅
         val rtkKey = redisKeyProvider.rtk(email = email)
 
-        // Redis에 RTK 저장
-        redisTemplate.opsForValue().set(rtkKey, rtk, expirationTimeOfRtk, TimeUnit.MILLISECONDS)
+        redisTemplate.opsForValue().set(
+            rtkKey, rtk, expirationTimeOfRtk, TimeUnit.MILLISECONDS
+        )
+    }
+
+    fun isNewcomer(email: String): Boolean {
+        val emailsKey = redisKeyProvider.emails()
+        val isNewcomer = !(redisTemplate.opsForSet().isMember(emailsKey, email) ?: true)
+
+        return isNewcomer
     }
 
     fun blockAtkThenDeleteRtk(atk: String, email: String) {
@@ -82,32 +61,23 @@ class AuthRedisHandler(
         )
     }
 
-    fun checkRtkThenGetUserAuth(email: String, rtkFromAuthHeader: String): UserAuth {
+    fun validateRtk(email: String, rtkFromAuthHeader: String) {
         // 세팅
-        val script = redisScriptProvider.checkRtkThenGetUserAuth()
+        val script = redisScriptProvider.validateRtk()
         val rtkKey = redisKeyProvider.rtk(email = email)
-        val authKey = redisKeyProvider.auth(email = email)
 
         // 스크립트 실행
         val result = redisTemplate.execute(
             RedisScript.of(script, String::class.java),
-            listOf(rtkKey, authKey),
+            listOf(rtkKey),
             rtkFromAuthHeader
         )
 
         // 결과 확인
-        return when (result) {
+        when (result) {
             EXPIRED_AUTH.name -> throw InvalidAuthException(EXPIRED_AUTH)
             INVALID_TOKEN.name -> throw InvalidAuthException(INVALID_TOKEN)
-            NO_CACHE -> authCacheManager.getUserAuthWithLocalCache(email = email)
-            else -> objectMapper.readValue(result, UserAuth::class.java)
+            else -> return
         }
-    }
-
-    fun isNewcomer(email: String): Boolean {
-        val emailsKey = redisKeyProvider.emails()
-        val isNewcomer = !(redisTemplate.opsForSet().isMember(emailsKey, email) ?: true)
-
-        return isNewcomer
     }
 }

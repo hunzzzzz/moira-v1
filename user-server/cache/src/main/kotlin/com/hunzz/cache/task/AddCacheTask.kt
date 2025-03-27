@@ -1,4 +1,4 @@
-package com.hunzz.cache.service
+package com.hunzz.cache.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.common.cache.UserCacheManager
@@ -7,7 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 
 @Service
-class CacheService(
+class AddCacheTask(
     private val objectMapper: ObjectMapper,
     private val userCacheManager: UserCacheManager
 ) {
@@ -15,14 +15,6 @@ class CacheService(
     fun addCache(message: String) {
         val data = objectMapper.readValue(message, KafkaAddUserCacheRequest::class.java)
 
-        userCacheManager.getWithLocalCache(userId = data.userId)
-    }
-
-    @KafkaListener(topics = ["re-add-user-cache"], groupId = "re-add-user-cache")
-    fun reAddCache(message: String) {
-        val data = objectMapper.readValue(message, KafkaAddUserCacheRequest::class.java)
-
-        userCacheManager.evictLocalCache(userId = data.userId)
         userCacheManager.getWithLocalCache(userId = data.userId)
     }
 }

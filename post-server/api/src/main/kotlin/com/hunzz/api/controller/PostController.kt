@@ -7,6 +7,7 @@ import com.hunzz.api.service.LikePostService
 import com.hunzz.api.service.UpdatePostService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -19,13 +20,13 @@ class PostController(
     private val likePostService: LikePostService,
     private val updatePostService: UpdatePostService
 ) {
-    @PostMapping
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     suspend fun addPost(
         @AuthPrincipal userId: UUID,
         @Valid @RequestPart request: PostRequest,
-        @RequestPart(required = false) image: MultipartFile?
-    ): ResponseEntity<UUID> {
-        val body = addPostService.addPost(userId = userId, request = request, image = image)
+        @RequestPart(required = false) images: List<MultipartFile>?
+    ): ResponseEntity<Unit> {
+        val body = addPostService.addPost(userId = userId, request = request, images = images)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(body)
     }

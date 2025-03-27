@@ -1,8 +1,6 @@
 package com.hunzz.authserver.domain.controller
 
 import com.hunzz.authserver.domain.dto.request.LoginRequest
-import com.hunzz.authserver.domain.dto.response.KakaoTokenResponse
-import com.hunzz.authserver.domain.dto.response.NaverTokenResponse
 import com.hunzz.authserver.domain.dto.response.TokenResponse
 import com.hunzz.authserver.domain.service.*
 import com.hunzz.authserver.utility.idempotent.Idempotent
@@ -21,7 +19,9 @@ class AuthController(
 ) {
     @Idempotent
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<TokenResponse> {
+    fun login(
+        @Valid @RequestBody request: LoginRequest
+    ): ResponseEntity<TokenResponse> {
         val body = loginService.login(request = request)
 
         return ResponseEntity.ok(body)
@@ -29,7 +29,7 @@ class AuthController(
 
     @Idempotent
     @GetMapping("/oauth/login/kakao")
-    suspend fun kakaoLogin(@RequestParam code: String): ResponseEntity<KakaoTokenResponse> {
+    suspend fun kakaoLogin(@RequestParam code: String): ResponseEntity<TokenResponse> {
         val body = kakaoLoginService.kakaoLogin(code = code)
 
         return ResponseEntity.ok(body)
@@ -37,7 +37,7 @@ class AuthController(
 
     @Idempotent
     @GetMapping("/oauth/login/naver")
-    suspend fun naverLogin(@RequestParam code: String): ResponseEntity<NaverTokenResponse> {
+    suspend fun naverLogin(@RequestParam code: String): ResponseEntity<TokenResponse> {
         val body = naverLoginService.naverLogin(code = code)
 
         return ResponseEntity.ok(body)
@@ -54,7 +54,7 @@ class AuthController(
 
     @Idempotent
     @GetMapping("/refresh")
-    fun refresh(httpServletRequest: HttpServletRequest): ResponseEntity<TokenResponse> {
+    suspend fun refresh(httpServletRequest: HttpServletRequest): ResponseEntity<TokenResponse> {
         val body = refreshService.refresh(httpServletRequest = httpServletRequest)
 
         return ResponseEntity.ok(body)

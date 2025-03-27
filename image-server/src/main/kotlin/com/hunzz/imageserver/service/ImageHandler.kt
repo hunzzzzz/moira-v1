@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hunzz.imageserver.dto.KafkaImageRequest
+import com.hunzz.imageserver.dto.KafkaImagesRequest
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.geometry.Positions
 import org.springframework.beans.factory.annotation.Value
@@ -23,7 +24,12 @@ class ImageHandler(
     private val amazonS3: AmazonS3,
     private val objectMapper: ObjectMapper
 ) {
-    private fun uploadToS3(fileName: String, image: BufferedImage, scale: Double, isThumbnail: Boolean = false) {
+    private fun uploadToS3(
+        fileName: String,
+        image: BufferedImage,
+        scale: Double,
+        isThumbnail: Boolean = false
+    ) {
         // 세팅
         val outputStream = ByteArrayOutputStream()
         if (isThumbnail)
@@ -51,11 +57,28 @@ class ImageHandler(
     }
 
     @KafkaListener(topics = ["upload-image"], groupId = "upload-image")
-    fun save(message: String) {
+    fun upload(message: String) {
         val data = objectMapper.readValue(message, KafkaImageRequest::class.java)
         val originalImage = ImageIO.read(ByteArrayInputStream(data.image))
 
         uploadToS3(fileName = data.originalFileName, image = originalImage, scale = 1.0)
         uploadToS3(fileName = data.thumbnailFileName, image = originalImage, scale = 0.25, isThumbnail = true)
+    }
+
+    @KafkaListener(topics = ["upload-images"], groupId = "upload-images")
+    fun uploadAll(message: String) {
+        val data = objectMapper.readValue(message, KafkaImagesRequest::class.java)
+
+        repeat(data.images.size) { index ->
+            // 이미지 파일
+            val originalImage = ImageIO.read(ByteArrayInputStream(data.images[index]))
+
+            // 원본 이미지 업로드
+            uploadToS3(fileName = data.fileNames[index], image = originalImage, scale = 1.0)
+
+            // 첫번째 이미지의 썸네일만 업로드
+            if (index == 0)
+                uploadToS3(fileName = data.thumbnailFileName, image = originalImage, scale = 0.25, isThumbnail = true)
+        }
     }
 }

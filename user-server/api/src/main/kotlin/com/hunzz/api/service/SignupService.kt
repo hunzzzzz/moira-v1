@@ -8,7 +8,6 @@ import com.hunzz.api.mail.UserMailSender
 import com.hunzz.common.exception.ErrorCode.*
 import com.hunzz.common.exception.custom.InvalidSignupException
 import com.hunzz.common.kafka.dto.KafkaSocialSignupRequest
-import com.hunzz.common.model.property.UserType
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 
@@ -52,23 +51,23 @@ class SignupService(
 
     @KafkaListener(topics = ["kakao-signup"], groupId = "kakao-signup")
     fun kakaoSignup(message: String) {
-        val request = objectMapper.readValue(message, KafkaSocialSignupRequest::class.java)
+        val data = objectMapper.readValue(message, KafkaSocialSignupRequest::class.java)
 
-        // Redis에 유저 정보 저장
-        userRedisHandler.socialUserSignup(request = request, type = UserType.KAKAO)
+        // Redis에 이메일 저장 (Set)
+        userRedisHandler.addEmailIntoRedisSet(email = data.email)
 
         // Kafka 메시지 전송 (user-api -> user-data)
-        userKafkaHandler.kakaoSignup(request = request)
+        userKafkaHandler.kakaoSignup(request = data)
     }
 
     @KafkaListener(topics = ["naver-signup"], groupId = "naver-signup")
     fun naverSignup(message: String) {
-        val request = objectMapper.readValue(message, KafkaSocialSignupRequest::class.java)
+        val data = objectMapper.readValue(message, KafkaSocialSignupRequest::class.java)
 
-        // Redis에 유저 정보 저장
-        userRedisHandler.socialUserSignup(request = request, type = UserType.NAVER)
+        // Redis에 이메일 저장 (Set)
+        userRedisHandler.addEmailIntoRedisSet(email = data.email)
 
         // Kafka 메시지 전송 (user-api -> user-data)
-        userKafkaHandler.naverSignup(request = request)
+        userKafkaHandler.naverSignup(request = data)
     }
 }

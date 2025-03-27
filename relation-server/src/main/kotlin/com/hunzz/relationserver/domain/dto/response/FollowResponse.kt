@@ -6,5 +6,6 @@ data class FollowResponse(
     val userId: UUID,
     val status: String,
     val name: String,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val thumbnailUrl: String?
 )

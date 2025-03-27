@@ -3,21 +3,18 @@ package com.hunzz.api.component
 import com.hunzz.api.dto.request.SignUpRequest
 import com.hunzz.common.kafka.KafkaProducer
 import com.hunzz.common.kafka.dto.*
-import org.springframework.context.annotation.Description
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 @Component
 class UserKafkaHandler(
-    private val kafkaProducer: KafkaProducer,
-    private val passwordEncoder: PasswordEncoder
+    private val kafkaProducer: KafkaProducer
 ) {
-    @Description("user-api -> user-data")
     fun saveUser(request: SignUpRequest) {
         val data = KafkaSignupRequest(
             email = request.email!!,
-            password = passwordEncoder.encodePassword(rawPassword = request.password!!),
+            password = request.password!!,
             name = request.name!!
         )
         kafkaProducer.send(topic = "save-user", data = data)
