@@ -36,7 +36,10 @@ class Post(
     val userId: UUID,
 
     @Column(name = "delete_at", nullable = true)
-    var deleteAt: LocalDate? = null
+    var deleteAt: LocalDate? = null,
+
+    @Column(name = "tx_id", nullable = false)
+    val txId: UUID
 ) : BaseTime() {
     fun update(content: String, scope: PostScope) {
         this.content = content

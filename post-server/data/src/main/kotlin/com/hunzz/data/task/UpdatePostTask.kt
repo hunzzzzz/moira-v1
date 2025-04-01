@@ -48,7 +48,7 @@ class UpdatePostTask(
 
     @KafkaListener(topics = ["delete-post"], groupId = "delete-post")
     @Transactional
-    fun deletePost(message: String) {
+    fun softDeletePost(message: String) {
         val data = objectMapper.readValue(message, KafkaDeletePostRequest::class.java)
 
         // Post 객체 가져오기

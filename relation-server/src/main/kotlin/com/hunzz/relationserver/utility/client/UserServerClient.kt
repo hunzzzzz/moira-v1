@@ -15,4 +15,7 @@ interface UserServerClient {
     fun getUsers(
         @RequestParam missingIds: List<UUID>
     ): HashMap<UUID, FollowResponse>
+
+    @GetMapping("/users/all")
+    fun getAllUserIds(): List<UUID>
 }

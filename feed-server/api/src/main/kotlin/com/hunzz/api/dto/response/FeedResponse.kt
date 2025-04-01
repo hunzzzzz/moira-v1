@@ -10,7 +10,7 @@ data class FeedResponse(
     val postScope: String,
     val postStatus: String,
     val postContent: String,
-    val postImageUrl: String?,
+    val postImageUrls: List<String>?,
     val postThumbnailUrl: String?,
     // user 관련
     val userId: UUID,

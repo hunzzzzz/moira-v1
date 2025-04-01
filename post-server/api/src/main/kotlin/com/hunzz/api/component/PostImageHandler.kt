@@ -1,4 +1,4 @@
-package com.hunzz.api.component.validation
+package com.hunzz.api.component
 
 import com.hunzz.common.exception.ErrorCode.INVALID_IMAGE_FILE
 import com.hunzz.common.exception.ErrorCode.MAX_IMAGE_COUNT_EXCEEDED

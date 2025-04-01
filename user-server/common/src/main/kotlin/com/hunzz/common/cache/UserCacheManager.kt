@@ -40,8 +40,11 @@ class UserCacheManager(
 
     private fun deleteUserCacheFromRedis(userId: UUID) {
         val userCacheKey = redisKeyProvider.user(userId = userId)
+        val expireTime = redisTemplate.getExpire(userCacheKey, TimeUnit.SECONDS)
 
-        redisTemplate.delete(userCacheKey)
+        // 남은 캐시 유효 시간이 24시간보다 작은 경우
+        if (expireTime < 60 * 60 * 24)
+            redisTemplate.delete(userCacheKey)
     }
 
     fun get(userId: UUID): UserInfo {
@@ -70,7 +73,7 @@ class UserCacheManager(
     }
 
     @CacheEvict(cacheNames = ["user"], key = "#userId", cacheManager = "localCacheManager")
-    fun evictLocalCache(userId: UUID) {
+    fun evictCaches(userId: UUID) {
         deleteUserCacheFromRedis(userId = userId)
     }
 }

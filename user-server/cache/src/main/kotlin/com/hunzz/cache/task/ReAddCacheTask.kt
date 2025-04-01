@@ -15,7 +15,7 @@ class ReAddCacheTask(
     fun reAddCache(message: String) {
         val data = objectMapper.readValue(message, KafkaAddUserCacheRequest::class.java)
 
-        userCacheManager.evictLocalCache(userId = data.userId)
+        userCacheManager.evictCaches(userId = data.userId)
         userCacheManager.getWithLocalCache(userId = data.userId)
     }
 }

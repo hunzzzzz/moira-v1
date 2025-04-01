@@ -14,4 +14,8 @@ class RedisKeyProvider {
     fun like(userId: UUID) = "like:$userId"
     fun likeCount() = "likes"
     fun likeNotification(postId: UUID) = "post:$postId:like-notification"
+
+    // post-transaction
+    fun pending(txId: UUID) = "pending:$txId"
+    fun rollback(txId: UUID) = "rollback:$txId"
 }

@@ -1,6 +1,7 @@
 package com.hunzz.common.model
 
 import jakarta.persistence.*
+import java.time.LocalDateTime
 import java.util.*
 
 @Entity
@@ -18,5 +19,8 @@ class Feed(
     val postId: UUID,
 
     @Column(name = "author_id", nullable = false)
-    val authorId: UUID
+    val authorId: UUID,
+
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 )

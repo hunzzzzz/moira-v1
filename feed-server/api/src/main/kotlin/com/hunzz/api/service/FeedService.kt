@@ -77,7 +77,7 @@ class FeedService(
                 postScope = post.scope,
                 postStatus = post.status,
                 postContent = post.content,
-                postImageUrl = post.imageUrl,
+                postImageUrls = post.imageUrl,
                 postThumbnailUrl = post.thumbnailUrl,
                 userId = user.userId,
                 userName = user.name,
