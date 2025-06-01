@@ -11,7 +11,7 @@ spring:
         - id: user-server
           uri: lb://USER-SERVER
           predicates:
-            - Path=/user-server/actuator/**, /user-server/signup/**, /user-server/private/**
+            - Path=/user-server/actuator/**, /user-server/signup/**
           filters:
             - RewritePath=/user-server/(?<segment>.*), /$\{segment}
         # user server
@@ -22,11 +22,18 @@ spring:
           filters:
             - RewritePath=/user-server/(?<segment>.*), /$\{segment}
             - JwtAuthorizationFilter
+        # user-cache server (without auth)
+        - id: user-cache
+          uri: lb://USER-CACHE
+          predicates:
+            - Path=/user-cache/actuator/**, /user-cache/private/**
+          filters:
+            - RewritePath=/user-cache/(?<segment>.*), /$\{segment}
         # auth server (without auth)
         - id: auth-server
           uri: lb://AUTH-SERVER
           predicates:
-            - Path=/auth-server/actuator/**, /auth-server/login/**, /auth-server/refresh/**
+            - Path=/auth-server/actuator/**, /auth-server/login/**, /auth-server/refresh/**, /auth-server/oauth/**
           filters:
             - RewritePath=/auth-server/(?<segment>.*), /$\{segment}
         # auth server
@@ -49,9 +56,16 @@ spring:
         - id: post-server
           uri: lb://POST-SERVER
           predicates:
-            - Path=/post-server/actuator/**, /post-server/private/**
+            - Path=/post-server/actuator/**
           filters:
             - RewritePath=/post-server/(?<segment>.*), /$\{segment}
+        # post-cache server (without auth)
+        - id: post-cache
+          uri: lb://POST-CACHE
+          predicates:
+            - Path=/post-cache/private/**
+          filters:
+            - RewritePath=/post-cache/(?<segment>.*), /$\{segment}
         # post server
         - id: post-server
           uri: lb://POST-SERVER
@@ -59,6 +73,14 @@ spring:
             - Path=/post-server/posts/**
           filters:
             - RewritePath=/post-server/(?<segment>.*), /$\{segment}
+            - JwtAuthorizationFilter
+        # comment server
+        - id: comment-server
+          uri: lb://COMMENT-SERVER
+          predicates:
+            - Path=/comment-server/posts/**
+          filters:
+            - RewritePath=/comment-server/(?<segment>.*), /$\{segment}
             - JwtAuthorizationFilter
         # feed server
         - id: feed-server

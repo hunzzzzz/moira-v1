@@ -27,26 +27,22 @@ class JwtAuthorizationFilter(
             val request = exchange.request
             val response = exchange.response
 
-            // check 'Authorization' header
+            // Authorization 헤더에서 ATK 추출
             val authHeader = request.headers.getFirst(AUTHORIZATION)
                 ?: throw JwtException(UNPACKED_ATK)
+            val atk = jwtProvider.substringToken(token = authHeader)
+                ?: throw JwtException(INVALID_TOKEN)
 
-            if (!authHeader.startsWith("Locust ")) {
-                // substring
-                val atk = jwtProvider.substringToken(token = authHeader)
-                    ?: throw JwtException(INVALID_TOKEN)
-
-                // validate
-                jwtProvider.validateToken(token = atk).onFailure {
-                    throw JwtException(EXPIRED_ATK)
-                }
-
-                // check atk blacklist
-                val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
-                val isBlocked = redisCommands.get(key = blockedAtkKey) != null
-
-                if (isBlocked) throw JwtException(EXPIRED_AUTH)
+            // ATK 검증
+            jwtProvider.validateToken(token = atk).onFailure {
+                throw JwtException(EXPIRED_ATK)
             }
+
+            // (로그아웃으로 인한) 차단된 ATK인지 검증
+            val blockedAtkKey = redisKeyProvider.blockedAtk(atk = atk)
+            val isBlocked = redisCommands.get(key = blockedAtkKey) != null
+
+            if (isBlocked) throw JwtException(EXPIRED_AUTH)
 
             chain.filter(exchange)
         }
